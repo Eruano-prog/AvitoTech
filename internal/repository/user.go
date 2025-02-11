@@ -14,9 +14,9 @@ type UserDb struct {
 
 func (u UserDb) InsertUser(user *entity.User) (*entity.User, error) {
 	q, err := u.db.Prepare(`
-	INSERT INTO users (username, password)
-	VALUES ($1, $2)
-	RETURNING id, username, password
+	INSERT INTO users (username, password, balance)
+	VALUES ($1, $2, $3)
+	RETURNING id, username, password, balance
 	`)
 	if err != nil {
 		u.l.Error("Failed to insert user", zap.Error(err))
@@ -24,7 +24,7 @@ func (u UserDb) InsertUser(user *entity.User) (*entity.User, error) {
 	}
 	defer q.Close()
 
-	res := q.QueryRow(user.Username, user.Password)
+	res := q.QueryRow(user.Username, user.Password, user.Balance)
 
 	if res.Err() != nil {
 		u.l.Error("Failed to insert user", zap.Error(err))
@@ -32,7 +32,7 @@ func (u UserDb) InsertUser(user *entity.User) (*entity.User, error) {
 	}
 
 	var resUser entity.User
-	err = res.Scan(&resUser.Id, user.Username, &resUser.Password)
+	err = res.Scan(&resUser.Id, user.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
 		u.l.Error("Failed to scan inserted user", zap.Error(err))
 		return nil, err

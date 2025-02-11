@@ -25,7 +25,12 @@ func (a AuthService) Authenticate(username, password string) (string, error) {
 		return "", UserAlreadyExistError
 	}
 
-	user := &entity.User{Username: username, Password: password}
+	user := &entity.User{
+		Username: username,
+		Password: password,
+		Balance:  0,
+	}
+	
 	user, err = a.userRepository.InsertUser(user)
 	if err != nil {
 		a.l.Error("failed to insert user", zap.Error(err))

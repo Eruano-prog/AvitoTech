@@ -1,0 +1,12 @@
+version: "3.9"
+name: AvitoTest_GolovlevFedor
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: "JustAUser"
+      POSTGRES_PASSWORD: "JustAPassword"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql

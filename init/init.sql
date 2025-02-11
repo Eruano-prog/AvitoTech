@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     username TEXT NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    balance INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS history (
