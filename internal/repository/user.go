@@ -3,9 +3,12 @@ package repository
 import (
 	"AvitoTech/internal/entity"
 	"database/sql"
+	"errors"
 	"fmt"
 	"go.uber.org/zap"
 )
+
+var ErrorUserNotFound = errors.New("user not found")
 
 type UserDb struct {
 	l  *zap.Logger
@@ -62,6 +65,9 @@ func (u UserDb) FindUserByUsername(username string) (*entity.User, error) {
 	var resUser entity.User
 	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrorUserNotFound
+		}
 		u.l.Error("Failed to scan found user by username", zap.String("username", username))
 		return nil, err
 	}
