@@ -103,6 +103,85 @@ func (u UserDb) FindUserById(id int) (*entity.User, error) {
 	return &resUser, nil
 }
 
+func (u UserDb) TransferMoney(userFrom int, userTo int, amount int) error {
+	tx, err := u.db.Begin()
+	if err != nil {
+		u.l.Error("Failed to begin transaction", zap.Error(err))
+		return err
+	}
+
+	var balance int
+	err = tx.QueryRow("SELECT balance FROM users WHERE user_id = $1 FOR UPDATE", userFrom).Scan(&balance)
+	if err != nil {
+		tx.Rollback()
+		u.l.Error("Failed to check balance", zap.Error(err))
+		return err
+	}
+
+	if balance < amount {
+		tx.Rollback()
+		return fmt.Errorf("insufficient balance")
+	}
+
+	_, err = tx.Exec("UPDATE users SET balance = balance - $1 WHERE user_id = $2", amount, userFrom)
+	if err != nil {
+		tx.Rollback()
+		u.l.Error("Failed to update balance for sender", zap.Error(err))
+		return err
+	}
+
+	_, err = tx.Exec("UPDATE users SET balance = balance + $1 WHERE user_id = $2", amount, userTo)
+	if err != nil {
+		tx.Rollback()
+		u.l.Error("Failed to update balance for receiver", zap.Error(err))
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		u.l.Error("Failed to commit transaction", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func (u UserDb) WithdrawMoney(user int, amount int) error {
+	tx, err := u.db.Begin()
+	if err != nil {
+		u.l.Error("Failed to begin transaction", zap.Error(err))
+		return err
+	}
+
+	var balance int
+	err = tx.QueryRow("SELECT balance FROM users WHERE user_id = $1 FOR UPDATE", user).Scan(&balance)
+	if err != nil {
+		u.l.Error("Failed to check balance", zap.Error(err))
+		tx.Rollback()
+		return err
+	}
+
+	if balance < amount {
+		return fmt.Errorf("insufficient balance")
+	}
+
+	_, err = tx.Exec("UPDATE users SET balance = balance - $1 WHERE user_id = $2", amount, user)
+	if err != nil {
+		u.l.Error("Failed to update balance", zap.Error(err))
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		u.l.Error("Failed to commit transaction", zap.Error(err))
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}
+
 func NewUserDatabase(
 	l *zap.Logger,
 	pgAddress string,
