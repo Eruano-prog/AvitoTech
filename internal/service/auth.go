@@ -5,6 +5,7 @@ import (
 	"AvitoTech/internal/repository"
 	"errors"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -19,18 +20,25 @@ type AuthService struct {
 }
 
 // Authenticate returns token associated with user
+// TODO: DEBUG
 func (a AuthService) Authenticate(username, password string) (string, error) {
 	_, err := a.userRepository.FindUserByUsername(username)
 	if err == nil {
 		return "", UserAlreadyExistError
 	}
 
+	encPasswd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		a.l.Error("failed to hash password", zap.Error(err))
+		return "", err
+	}
+
 	user := &entity.User{
 		Username: username,
-		Password: password,
+		Password: string(encPasswd),
 		Balance:  0,
 	}
-	
+
 	user, err = a.userRepository.InsertUser(user)
 	if err != nil {
 		a.l.Error("failed to insert user", zap.Error(err))

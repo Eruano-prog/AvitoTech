@@ -16,7 +16,7 @@ func (u UserDb) InsertUser(user *entity.User) (*entity.User, error) {
 	q, err := u.db.Prepare(`
 	INSERT INTO users (username, password, balance)
 	VALUES ($1, $2, $3)
-	RETURNING id, username, password, balance
+	RETURNING user_id, username, password, balance
 	`)
 	if err != nil {
 		u.l.Error("Failed to insert user", zap.Error(err))
@@ -43,7 +43,7 @@ func (u UserDb) InsertUser(user *entity.User) (*entity.User, error) {
 
 func (u UserDb) FindUserByUsername(username string) (*entity.User, error) {
 	q, err := u.db.Prepare(`
-	SELECT id, username, password
+	SELECT user_id, username, password, balance
 	FROM users
 	WHERE username = $1
 `)
@@ -60,7 +60,7 @@ func (u UserDb) FindUserByUsername(username string) (*entity.User, error) {
 	}
 
 	var resUser entity.User
-	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password)
+	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
 		u.l.Error("Failed to scan found user by username", zap.String("username", username))
 		return nil, err
@@ -71,9 +71,9 @@ func (u UserDb) FindUserByUsername(username string) (*entity.User, error) {
 
 func (u UserDb) FindUserById(id int) (*entity.User, error) {
 	q, err := u.db.Prepare(`
-	SELECT id, username, password
+	SELECT user_id, username, password, balance
 	FROM users
-	WHERE id = $1
+	WHERE user_id = $1
 `)
 	if err != nil {
 		u.l.Error("Failed to find user by username", zap.Int("user id", id))
@@ -88,7 +88,7 @@ func (u UserDb) FindUserById(id int) (*entity.User, error) {
 	}
 
 	var resUser entity.User
-	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password)
+	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
 		u.l.Error("Failed to scan found user by username", zap.Int("user id", id))
 		return nil, err

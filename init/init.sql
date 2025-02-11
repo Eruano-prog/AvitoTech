@@ -7,13 +7,22 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS history (
     id SERIAL PRIMARY KEY,
-    sender_id INTEGER NOT NULL,
-    receiver_id INTEGER NOT NULL,
+    sender_name TEXT NOT NULL,
+    receiver_name TEXT NOT NULL,
     amount INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS inventory (
+    id SERIAL PRIMARY KEY,
+    owner_id INTEGER NOT NULL,
+    item TEXT NOT NULL
+);
+
 CREATE INDEX sender
-ON history(sender_id);
+    ON history(sender_name);
 
 CREATE INDEX receiver
-ON history(receiver_id);
+    ON history(receiver_name);
+
+CREATE INDEX idx_owner_id_item
+    ON inventory (owner_id, item);
