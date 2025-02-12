@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 
-	_ "github.com/jackc/pgx/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 var ErrorUserNotFound = errors.New("user not found")
