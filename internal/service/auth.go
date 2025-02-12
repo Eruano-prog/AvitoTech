@@ -29,7 +29,7 @@ func (a AuthService) createUser(username, password string) (*entity.User, error)
 	user := &entity.User{
 		Username: username,
 		Password: string(hashedPassword),
-		Balance:  0,
+		Balance:  1000,
 	}
 
 	user, err = a.userRepository.InsertUser(user)
