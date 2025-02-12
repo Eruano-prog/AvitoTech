@@ -1,7 +1,7 @@
 package entity
 
 // TODO: add loading from json file
-var items = map[string]int{
+var Items = map[string]int{
 	"t-shirt":    80,
 	"cup":        20,
 	"book":       50,

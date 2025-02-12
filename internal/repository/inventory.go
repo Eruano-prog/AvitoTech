@@ -11,6 +11,25 @@ type InventoryRepository struct {
 	db *sql.DB
 }
 
+func (i InventoryRepository) InsertItem(owner int, item string) error {
+	q, err := i.db.Prepare(`
+	INSERT INTO inventory (owner_id, item)
+	VALUES ($1, $2)
+`)
+	if err != nil {
+		i.l.Error("failed to prepare inventory query", zap.Error(err))
+		return err
+	}
+	defer q.Close()
+
+	_, err = q.Exec(owner, item)
+	if err != nil {
+		i.l.Error("failed to insert inventory row", zap.Error(err))
+		return err
+	}
+	return nil
+}
+
 func (i InventoryRepository) GetUsersInventory(userID int) (map[string]int, error) {
 	q, err := i.db.Prepare(`
 	SELECT item, count(item)

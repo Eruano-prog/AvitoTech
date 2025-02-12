@@ -6,16 +6,18 @@ import (
 	"errors"
 	"fmt"
 	"go.uber.org/zap"
+
+	_ "github.com/jackc/pgx/v5"
 )
 
 var ErrorUserNotFound = errors.New("user not found")
 
-type UserDb struct {
+type UserRepository struct {
 	l  *zap.Logger
 	db *sql.DB
 }
 
-func (u UserDb) InsertUser(user *entity.User) (*entity.User, error) {
+func (u UserRepository) InsertUser(user *entity.User) (*entity.User, error) {
 	q, err := u.db.Prepare(`
 	INSERT INTO users (username, password, balance)
 	VALUES ($1, $2, $3)
@@ -44,7 +46,7 @@ func (u UserDb) InsertUser(user *entity.User) (*entity.User, error) {
 	return &resUser, nil
 }
 
-func (u UserDb) FindUserByUsername(username string) (*entity.User, error) {
+func (u UserRepository) FindUserByUsername(username string) (*entity.User, error) {
 	q, err := u.db.Prepare(`
 	SELECT user_id, username, password, balance
 	FROM users
@@ -75,7 +77,7 @@ func (u UserDb) FindUserByUsername(username string) (*entity.User, error) {
 	return &resUser, nil
 }
 
-func (u UserDb) FindUserById(id int) (*entity.User, error) {
+func (u UserRepository) FindUserById(id int) (*entity.User, error) {
 	q, err := u.db.Prepare(`
 	SELECT user_id, username, password, balance
 	FROM users
@@ -103,7 +105,7 @@ func (u UserDb) FindUserById(id int) (*entity.User, error) {
 	return &resUser, nil
 }
 
-func (u UserDb) TransferMoney(userFrom int, userTo int, amount int) error {
+func (u UserRepository) TransferMoney(userFrom int, userTo int, amount int) error {
 	tx, err := u.db.Begin()
 	if err != nil {
 		u.l.Error("Failed to begin transaction", zap.Error(err))
@@ -146,7 +148,7 @@ func (u UserDb) TransferMoney(userFrom int, userTo int, amount int) error {
 	return nil
 }
 
-func (u UserDb) WithdrawMoney(user int, amount int) error {
+func (u UserRepository) WithdrawMoney(user int, amount int) error {
 	tx, err := u.db.Begin()
 	if err != nil {
 		u.l.Error("Failed to begin transaction", zap.Error(err))
@@ -182,13 +184,13 @@ func (u UserDb) WithdrawMoney(user int, amount int) error {
 	return nil
 }
 
-func NewUserDatabase(
+func NewUserRepository(
 	l *zap.Logger,
 	pgAddress string,
 	pgUser string,
 	pgPassword string,
 	pgDatabase string,
-) (*UserDb, error) {
+) (*UserRepository, error) {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", pgUser, pgPassword, pgAddress, pgDatabase)
 
 	db, err := sql.Open("pgx", dsn)
@@ -197,7 +199,7 @@ func NewUserDatabase(
 		return nil, err
 	}
 
-	return &UserDb{
+	return &UserRepository{
 		l:  l,
 		db: db,
 	}, nil

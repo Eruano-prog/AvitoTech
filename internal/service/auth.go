@@ -16,7 +16,7 @@ var (
 type AuthService struct {
 	l              *zap.Logger
 	jwtService     *JWTService
-	userRepository *repository.UserDb
+	userRepository *repository.UserRepository
 }
 
 func (a AuthService) createUser(username, password string) (*entity.User, error) {
@@ -85,10 +85,12 @@ func (a AuthService) VerifyJWT(token string) (int, error) {
 
 func NewAuthService(
 	l *zap.Logger,
-	userRepository *repository.UserDb,
+	u *repository.UserRepository,
+	j *JWTService,
 ) *AuthService {
 	return &AuthService{
 		l:              l,
-		userRepository: userRepository,
+		userRepository: u,
+		jwtService:     j,
 	}
 }

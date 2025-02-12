@@ -9,7 +9,7 @@ import (
 type InfoService struct {
 	l *zap.Logger
 
-	userRepo      *repository.UserDb
+	userRepo      *repository.UserRepository
 	historyRepo   *repository.HistoryRepository
 	inventoryRepo *repository.InventoryRepository
 }
@@ -45,7 +45,7 @@ func (i InfoService) GetInfo(userID int) (*entity.AccountInfo, error) {
 
 func NewInfoService(
 	l *zap.Logger,
-	u *repository.UserDb,
+	u *repository.UserRepository,
 	h *repository.HistoryRepository,
 	i *repository.InventoryRepository,
 ) *InfoService {

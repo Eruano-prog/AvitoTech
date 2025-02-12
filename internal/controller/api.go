@@ -4,7 +4,7 @@ import (
 	"AvitoTech/internal/service"
 	"encoding/json"
 	"errors"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -20,13 +20,13 @@ type ApiController struct {
 }
 
 func (a ApiController) Register(r chi.Router) {
-	r.Post("/api/auth", a.ApiAuth)
-	r.Get("/api/buy/{item}", a.ApiBuyItem)
-	r.Get("/api/info", a.ApiInfo)
-	r.Post("/api/sendCoin", a.ApiSendCoin)
+	r.Post("/api/auth", a.apiAuth)
+	r.Get("/api/buy/{item}", a.apiBuyItem)
+	r.Get("/api/info", a.apiInfo)
+	r.Post("/api/sendCoin", a.apiSendCoin)
 }
 
-func (a ApiController) ApiAuth(w http.ResponseWriter, r *http.Request) {
+func (a ApiController) apiAuth(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		a.writeError(w, http.StatusBadRequest, "Invalid request: missing username or password")
@@ -61,7 +61,7 @@ func (a ApiController) ApiAuth(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-func (a ApiController) ApiBuyItem(w http.ResponseWriter, r *http.Request) {
+func (a ApiController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")
 	if token == "" {
@@ -87,7 +87,7 @@ func (a ApiController) ApiBuyItem(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a ApiController) ApiInfo(w http.ResponseWriter, r *http.Request) {
+func (a ApiController) apiInfo(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")
 	if token == "" {
@@ -144,7 +144,7 @@ func (a ApiController) ApiInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a ApiController) ApiSendCoin(w http.ResponseWriter, r *http.Request) {
+func (a ApiController) apiSendCoin(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")
 	if token == "" {
