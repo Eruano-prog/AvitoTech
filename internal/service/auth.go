@@ -3,7 +3,6 @@ package service
 import (
 	"AvitoTech/internal/entity"
 	"AvitoTech/internal/repository"
-	"AvitoTech/internal/repository/postgres"
 	"errors"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -46,7 +45,7 @@ func (a AuthService) createUser(username, password string) (*entity.User, error)
 func (a AuthService) Authenticate(username, password string) (string, error) {
 	user, err := a.userRepository.FindUserByUsername(username)
 
-	if errors.Is(err, postgres.ErrorUserNotFound) {
+	if errors.Is(err, repository.ErrorUserNotFound) {
 		user, err = a.createUser(username, password)
 		if err != nil {
 			return "", err

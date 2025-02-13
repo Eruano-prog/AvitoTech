@@ -1,6 +1,11 @@
 package repository
 
-import "AvitoTech/internal/entity"
+import (
+	"AvitoTech/internal/entity"
+	"errors"
+)
+
+var ErrorUserNotFound = errors.New("user not found")
 
 type HistoryRepository interface {
 	GetSentByUser(name string) ([]entity.Operation, error)

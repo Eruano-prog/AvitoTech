@@ -3,6 +3,7 @@ package service
 import "AvitoTech/internal/entity"
 
 type Auth interface {
+	createUser(username, password string) (*entity.User, error)
 	Authenticate(username, password string) (string, error)
 	VerifyJWT(token string) (int, error)
 }

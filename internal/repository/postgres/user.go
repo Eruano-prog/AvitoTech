@@ -11,8 +11,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-var ErrorUserNotFound = errors.New("user not found")
-
 type UserRepository struct {
 	l  *zap.Logger
 	db *sql.DB
@@ -69,7 +67,7 @@ func (u UserRepository) FindUserByUsername(username string) (*entity.User, error
 	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrorUserNotFound
+			return nil, repository.ErrorUserNotFound
 		}
 		u.l.Error("Failed to scan found user by username", zap.String("username", username))
 		return nil, err
