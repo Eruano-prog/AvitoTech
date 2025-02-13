@@ -25,14 +25,14 @@ func (s JWTService) VerifyToken(tokenString string) (int, error) {
 		return s.secret, nil
 	})
 	if err != nil {
-		s.l.Error("Error parsing token", zap.Error(err))
+		s.l.Debug("Error parsing token", zap.Error(err))
 		return -1, err
 	}
 
 	if claims, ok := token.Claims.(*jwt.MapClaims); ok && token.Valid {
 		id, ok := (*claims)["userID"].(float64)
 		if !ok {
-			s.l.Error("Invalid userID type")
+			s.l.Debug("Invalid userID type")
 			return -1, errors.New("invalid userID type")
 		}
 		return int(id), nil

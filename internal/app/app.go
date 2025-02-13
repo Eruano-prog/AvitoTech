@@ -52,7 +52,7 @@ func Run() {
 
 	authService := service.NewAuthService(logger, userRepository, jwtService)
 	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
-	coinService := service.NewCoinService(logger, userRepository, inventoryRepository)
+	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
 	apiController := controller.NewApiController(logger, authService, infoService, coinService)
 

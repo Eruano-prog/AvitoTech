@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"AvitoTech/internal/entity"
-	"AvitoTech/internal/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -19,7 +18,7 @@ func TestAuthService_Authenticate_NewUser(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockToken := new(mocks.MockToken)
 
-	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
+	authService := NewAuthService(logger, mockUserRepo, mockToken)
 
 	username := "newuser"
 	password := "password"
@@ -53,7 +52,7 @@ func TestAuthService_Authenticate_ExistingUser(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockToken := new(mocks.MockToken)
 
-	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
+	authService := NewAuthService(logger, mockUserRepo, mockToken)
 
 	username := "existinguser"
 	password := "validpassword123" // Используем более длинный пароль
@@ -88,7 +87,7 @@ func TestAuthService_Authenticate_InvalidPassword(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockToken := new(mocks.MockToken)
 
-	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
+	authService := NewAuthService(logger, mockUserRepo, mockToken)
 
 	username := "existinguser"
 	password := "wrongpassword"
@@ -117,7 +116,7 @@ func TestAuthService_VerifyJWT_ValidToken(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockToken := new(mocks.MockToken)
 
-	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
+	authService := NewAuthService(logger, mockUserRepo, mockToken)
 
 	token := "valid-token"
 	userID := 1
@@ -138,7 +137,7 @@ func TestAuthService_VerifyJWT_InvalidToken(t *testing.T) {
 	mockUserRepo := new(mocks.MockUserRepository)
 	mockToken := new(mocks.MockToken)
 
-	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
+	authService := NewAuthService(logger, mockUserRepo, mockToken)
 
 	token := "invalid-token"
 

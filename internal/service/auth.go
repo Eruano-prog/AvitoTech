@@ -66,7 +66,7 @@ func (a AuthService) Authenticate(username, password string) (string, error) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		a.l.Error("failed to compare password", zap.Error(err))
+		a.l.Debug("failed to compare password", zap.Error(err))
 		return "", err
 	}
 

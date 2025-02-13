@@ -1,7 +1,6 @@
 package service
 
 import (
-	"AvitoTech/internal/service"
 	"testing"
 	"time"
 
@@ -13,7 +12,7 @@ import (
 func TestJWTService_GenerateToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	secret := "my-secret-key"
-	s := service.NewJWTService(logger, secret)
+	s := NewJWTService(logger, secret)
 
 	userID := 123
 	token, err := s.GenerateToken(userID)
@@ -29,7 +28,7 @@ func TestJWTService_GenerateToken(t *testing.T) {
 func TestJWTService_VerifyToken_ValidToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	secret := "my-secret-key"
-	s := service.NewJWTService(logger, secret)
+	s := NewJWTService(logger, secret)
 
 	userID := 123
 	token, err := s.GenerateToken(userID)
@@ -43,7 +42,7 @@ func TestJWTService_VerifyToken_ValidToken(t *testing.T) {
 func TestJWTService_VerifyToken_InvalidToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	secret := "my-secret-key"
-	s := service.NewJWTService(logger, secret)
+	s := NewJWTService(logger, secret)
 
 	invalidToken := "invalid.token.here"
 	parsedUserID, err := s.VerifyToken(invalidToken)
@@ -55,7 +54,7 @@ func TestJWTService_VerifyToken_InvalidToken(t *testing.T) {
 func TestJWTService_VerifyToken_InvalidUserIDType(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	secret := "my-secret-key"
-	s := service.NewJWTService(logger, secret)
+	s := NewJWTService(logger, secret)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID": "not-an-int",
@@ -72,7 +71,7 @@ func TestJWTService_VerifyToken_InvalidUserIDType(t *testing.T) {
 func TestJWTService_VerifyToken_ExpiredToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	secret := "my-secret-key"
-	s := service.NewJWTService(logger, secret)
+	s := NewJWTService(logger, secret)
 
 	claims := jwt.MapClaims{
 		"userID": 123,

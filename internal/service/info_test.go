@@ -3,7 +3,6 @@ package service
 import (
 	"AvitoTech/internal/entity"
 	"AvitoTech/internal/repository"
-	"AvitoTech/internal/service"
 	mocks "AvitoTech/test/mock"
 	"errors"
 	"testing"
@@ -18,7 +17,7 @@ func TestInfoService_GetInfo_Success(t *testing.T) {
 	mockHistoryRepo := new(mocks.MockHistoryRepository)
 	mockInventoryRepo := new(mocks.MockInventoryRepository)
 
-	infoService := service.NewInfoService(logger, mockUserRepo, mockHistoryRepo, mockInventoryRepo)
+	infoService := NewInfoService(logger, mockUserRepo, mockHistoryRepo, mockInventoryRepo)
 
 	userID := 1
 	username := "testuser"
@@ -63,7 +62,7 @@ func TestInfoService_GetInfo_UserNotFound(t *testing.T) {
 	mockHistoryRepo := new(mocks.MockHistoryRepository)
 	mockInventoryRepo := new(mocks.MockInventoryRepository)
 
-	infoService := service.NewInfoService(logger, mockUserRepo, mockHistoryRepo, mockInventoryRepo)
+	infoService := NewInfoService(logger, mockUserRepo, mockHistoryRepo, mockInventoryRepo)
 
 	userID := 1
 	mockUserRepo.On("FindUserById", userID).Return(&entity.User{}, repository.ErrorUserNotFound)
@@ -82,7 +81,7 @@ func TestInfoService_GetInfo_HistoryError(t *testing.T) {
 	mockHistoryRepo := new(mocks.MockHistoryRepository)
 	mockInventoryRepo := new(mocks.MockInventoryRepository)
 
-	infoService := service.NewInfoService(logger, mockUserRepo, mockHistoryRepo, mockInventoryRepo)
+	infoService := NewInfoService(logger, mockUserRepo, mockHistoryRepo, mockInventoryRepo)
 
 	userID := 1
 	username := "testuser"
