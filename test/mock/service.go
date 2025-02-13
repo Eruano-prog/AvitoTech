@@ -1,8 +1,7 @@
-package service
+package mock
 
 import "github.com/stretchr/testify/mock"
 
-// MockToken is a mock implementation of the Token interface
 type MockToken struct {
 	mock.Mock
 }

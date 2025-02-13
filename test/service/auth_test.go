@@ -2,8 +2,7 @@ package service
 
 import (
 	"AvitoTech/internal/repository"
-	mockRepo "AvitoTech/test/mock/repository"
-	mockService "AvitoTech/test/mock/service"
+	mocks "AvitoTech/test/mock"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
@@ -17,8 +16,8 @@ import (
 
 func TestAuthService_Authenticate_NewUser(t *testing.T) {
 	logger, _ := zap.NewProduction()
-	mockUserRepo := new(mockRepo.MockUserRepository)
-	mockToken := new(mockService.MockToken)
+	mockUserRepo := new(mocks.MockUserRepository)
+	mockToken := new(mocks.MockToken)
 
 	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
 
@@ -51,8 +50,8 @@ func TestAuthService_Authenticate_NewUser(t *testing.T) {
 
 func TestAuthService_Authenticate_ExistingUser(t *testing.T) {
 	logger, _ := zap.NewProduction()
-	mockUserRepo := new(mockRepo.MockUserRepository)
-	mockToken := new(mockService.MockToken)
+	mockUserRepo := new(mocks.MockUserRepository)
+	mockToken := new(mocks.MockToken)
 
 	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
 
@@ -86,8 +85,8 @@ func TestAuthService_Authenticate_ExistingUser(t *testing.T) {
 
 func TestAuthService_Authenticate_InvalidPassword(t *testing.T) {
 	logger, _ := zap.NewProduction()
-	mockUserRepo := new(mockRepo.MockUserRepository)
-	mockToken := new(mockService.MockToken)
+	mockUserRepo := new(mocks.MockUserRepository)
+	mockToken := new(mocks.MockToken)
 
 	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
 
@@ -115,8 +114,8 @@ func TestAuthService_Authenticate_InvalidPassword(t *testing.T) {
 
 func TestAuthService_VerifyJWT_ValidToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
-	mockUserRepo := new(mockRepo.MockUserRepository)
-	mockToken := new(mockService.MockToken)
+	mockUserRepo := new(mocks.MockUserRepository)
+	mockToken := new(mocks.MockToken)
 
 	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
 
@@ -136,8 +135,8 @@ func TestAuthService_VerifyJWT_ValidToken(t *testing.T) {
 
 func TestAuthService_VerifyJWT_InvalidToken(t *testing.T) {
 	logger, _ := zap.NewProduction()
-	mockUserRepo := new(mockRepo.MockUserRepository)
-	mockToken := new(mockService.MockToken)
+	mockUserRepo := new(mocks.MockUserRepository)
+	mockToken := new(mocks.MockToken)
 
 	authService := service.NewAuthService(logger, mockUserRepo, mockToken)
 
