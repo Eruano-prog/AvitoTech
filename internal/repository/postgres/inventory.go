@@ -1,6 +1,7 @@
-package repository
+package postgres
 
 import (
+	"AvitoTech/internal/repository"
 	"database/sql"
 	"fmt"
 	"go.uber.org/zap"
@@ -72,7 +73,7 @@ func NewInventoryRepository(
 	pgUser string,
 	pgPassword string,
 	pgDatabase string,
-) (*InventoryRepository, error) {
+) (repository.InventoryRepository, error) {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", pgUser, pgPassword, pgAddress, pgDatabase)
 
 	db, err := sql.Open("pgx", dsn)

@@ -10,8 +10,8 @@ import (
 type CoinService struct {
 	l *zap.Logger
 
-	userRepo      *repository.UserRepository
-	inventoryRepo *repository.InventoryRepository
+	userRepo      repository.UserRepository
+	inventoryRepo repository.InventoryRepository
 }
 
 func (c CoinService) SendCoin(fromUser int, toUser string, amount int) error {
@@ -53,8 +53,8 @@ func (c CoinService) BuyItem(id int, item string) error {
 
 func NewCoinService(
 	l *zap.Logger,
-	u *repository.UserRepository,
-	i *repository.InventoryRepository,
+	u repository.UserRepository,
+	i repository.InventoryRepository,
 ) *CoinService {
 	return &CoinService{
 		l:             l,

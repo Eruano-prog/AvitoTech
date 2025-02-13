@@ -3,7 +3,7 @@ package app
 import (
 	"AvitoTech/internal/config"
 	"AvitoTech/internal/controller"
-	"AvitoTech/internal/repository"
+	"AvitoTech/internal/repository/postgres"
 	"AvitoTech/internal/service"
 	"fmt"
 	"github.com/go-chi/chi/v5"
@@ -32,17 +32,17 @@ func Run() {
 	pgUser := pgCfg.Username
 	pgPass := pgCfg.Password
 
-	userRepository, err := repository.NewUserRepository(logger, pgAddr, pgUser, pgPass, pdDb)
+	userRepository, err := postgres.NewUserRepository(logger, pgAddr, pgUser, pgPass, pdDb)
 	if err != nil {
 		logger.Fatal("cannot create user repository", zap.Error(err))
 		return
 	}
-	historyRepository, err := repository.NewHistoryRepository(logger, pgAddr, pgUser, pgPass, pdDb)
+	historyRepository, err := postgres.NewHistoryRepository(logger, pgAddr, pgUser, pgPass, pdDb)
 	if err != nil {
 		logger.Fatal("cannot create history repository", zap.Error(err))
 		return
 	}
-	inventoryRepository, err := repository.NewInventoryRepository(logger, pgAddr, pgUser, pgPass, pdDb)
+	inventoryRepository, err := postgres.NewInventoryRepository(logger, pgAddr, pgUser, pgPass, pdDb)
 	if err != nil {
 		logger.Fatal("cannot create inventory repository", zap.Error(err))
 		return

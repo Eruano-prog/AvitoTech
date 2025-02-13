@@ -1,18 +1,19 @@
-package repository
+package postgres
 
 import (
 	"AvitoTech/internal/entity"
+	"AvitoTech/internal/repository"
 	"database/sql"
 	"fmt"
 	"go.uber.org/zap"
 )
 
-type HistoryRepository struct {
+type History struct {
 	l  *zap.Logger
 	db *sql.DB
 }
 
-func (r HistoryRepository) GetSentByUser(name string) ([]entity.Operation, error) {
+func (r History) GetSentByUser(name string) ([]entity.Operation, error) {
 	q, err := r.db.Prepare(`
 	SELECT receiver_name, amount
 	FROM history
@@ -42,7 +43,7 @@ func (r HistoryRepository) GetSentByUser(name string) ([]entity.Operation, error
 	return operations, nil
 }
 
-func (r HistoryRepository) GetReceivedByUser(name string) ([]entity.Operation, error) {
+func (r History) GetReceivedByUser(name string) ([]entity.Operation, error) {
 	q, err := r.db.Prepare(`
 	SELECT sender_name, amount
 	FROM history
@@ -78,7 +79,7 @@ func NewHistoryRepository(
 	pgUser string,
 	pgPassword string,
 	pgDatabase string,
-) (*HistoryRepository, error) {
+) (repository.HistoryRepository, error) {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", pgUser, pgPassword, pgAddress, pgDatabase)
 
 	db, err := sql.Open("pgx", dsn)
@@ -87,7 +88,7 @@ func NewHistoryRepository(
 		return nil, err
 	}
 
-	return &HistoryRepository{
+	return &History{
 		l:  l,
 		db: db,
 	}, nil

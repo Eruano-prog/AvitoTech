@@ -3,6 +3,7 @@ package service
 import (
 	"AvitoTech/internal/entity"
 	"AvitoTech/internal/repository"
+	"AvitoTech/internal/repository/postgres"
 	"errors"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -16,7 +17,7 @@ var (
 type AuthService struct {
 	l              *zap.Logger
 	jwtService     *JWTService
-	userRepository *repository.UserRepository
+	userRepository repository.UserRepository
 }
 
 func (a AuthService) createUser(username, password string) (*entity.User, error) {
@@ -45,7 +46,7 @@ func (a AuthService) createUser(username, password string) (*entity.User, error)
 func (a AuthService) Authenticate(username, password string) (string, error) {
 	user, err := a.userRepository.FindUserByUsername(username)
 
-	if errors.Is(err, repository.ErrorUserNotFound) {
+	if errors.Is(err, postgres.ErrorUserNotFound) {
 		user, err = a.createUser(username, password)
 		if err != nil {
 			return "", err
@@ -85,7 +86,7 @@ func (a AuthService) VerifyJWT(token string) (int, error) {
 
 func NewAuthService(
 	l *zap.Logger,
-	u *repository.UserRepository,
+	u repository.UserRepository,
 	j *JWTService,
 ) *AuthService {
 	return &AuthService{
