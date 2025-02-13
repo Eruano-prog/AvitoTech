@@ -12,18 +12,35 @@ type CoinService struct {
 
 	userRepo      repository.UserRepository
 	inventoryRepo repository.InventoryRepository
+	historyRepo   repository.HistoryRepository
 }
 
 func (c CoinService) SendCoin(fromUser int, toUser string, amount int) error {
+	sender, err := c.userRepo.FindUserById(fromUser)
+	if err != nil {
+		c.l.Debug("fromUser not found", zap.Error(err))
+		return err
+	}
+
 	receiver, err := c.userRepo.FindUserByUsername(toUser)
 	if err != nil {
-		c.l.Debug("toUser bot found")
+		c.l.Debug("toUser bot found", zap.Error(err))
 		return err
 	}
 
 	err = c.userRepo.TransferMoney(fromUser, receiver.Id, amount)
 	if err != nil {
 		c.l.Debug("failed to transfer money", zap.Error(err))
+		return err
+	}
+
+	err = c.historyRepo.InsertOperation(entity.Operation{
+		FromUser: sender.Username,
+		ToUser:   receiver.Username,
+		Amount:   amount,
+	})
+	if err != nil {
+		c.l.Debug("failed to insert history", zap.Error(err))
 		return err
 	}
 
@@ -55,10 +72,12 @@ func NewCoinService(
 	l *zap.Logger,
 	u repository.UserRepository,
 	i repository.InventoryRepository,
+	h repository.HistoryRepository,
 ) Coin {
 	return &CoinService{
 		l:             l,
 		userRepo:      u,
 		inventoryRepo: i,
+		historyRepo:   h,
 	}
 }

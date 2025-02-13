@@ -8,6 +8,7 @@ import (
 var ErrorUserNotFound = errors.New("user not found")
 
 type HistoryRepository interface {
+	InsertOperation(operation entity.Operation) error
 	GetSentByUser(name string) ([]entity.Operation, error)
 	GetReceivedByUser(name string) ([]entity.Operation, error)
 }

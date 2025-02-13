@@ -79,7 +79,6 @@ func (a ApiController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
 		a.writeError(w, http.StatusBadRequest, "Item can't be empty")
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
 	err = a.coin.BuyItem(id, item)
 	if err != nil {
 		a.writeError(w, http.StatusInternalServerError, "Internal server error")
@@ -100,7 +99,6 @@ func (a ApiController) apiInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Invoke the callback with all the unmarshaled arguments
 	info, err := a.info.GetInfo(id)
 	if err != nil {
 		a.writeError(w, http.StatusInternalServerError, err.Error())
@@ -110,13 +108,13 @@ func (a ApiController) apiInfo(w http.ResponseWriter, r *http.Request) {
 	//TODO: move it to service layer
 	sent := make([]SendRecord, len(info.Sent))
 	for i, item := range info.Sent {
-		sent[i].ToUser = &item.User
+		sent[i].ToUser = &item.ToUser
 		sent[i].Amount = &item.Amount
 	}
 
 	received := make([]ReceiveRecord, len(info.Received))
 	for i, item := range info.Received {
-		received[i].FromUser = &item.User
+		received[i].FromUser = &item.FromUser
 		received[i].Amount = &item.Amount
 	}
 

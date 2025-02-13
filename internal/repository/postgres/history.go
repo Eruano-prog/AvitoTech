@@ -13,9 +13,28 @@ type History struct {
 	db *sql.DB
 }
 
-func (r History) GetSentByUser(name string) ([]entity.Operation, error) {
-	q, err := r.db.Prepare(`
-	SELECT receiver_name, amount
+func (h History) InsertOperation(operation entity.Operation) error {
+	q, err := h.db.Prepare(`
+	INSERT INTO history (sender_name, receiver_name, amount)
+	VALUES ($1, $2, $3)
+`)
+	if err != nil {
+		h.l.Error("Failed to prepare query", zap.Error(err))
+		return err
+	}
+	defer q.Close()
+
+	_, err = q.Exec(operation.FromUser, operation.ToUser, operation.Amount)
+	if err != nil {
+		h.l.Error("Failed to insert history", zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (h History) GetSentByUser(name string) ([]entity.Operation, error) {
+	q, err := h.db.Prepare(`
+	SELECT sender_name, receiver_name, amount
 	FROM history
 	WHERE sender_name = $1
 `)
@@ -33,9 +52,9 @@ func (r History) GetSentByUser(name string) ([]entity.Operation, error) {
 	var operations []entity.Operation
 	for rows.Next() {
 		var operation entity.Operation
-		err = rows.Scan(&operation.User, &operation.Amount)
+		err = rows.Scan(&operation.FromUser, &operation.ToUser, &operation.Amount)
 		if err != nil {
-			r.l.Debug("Error scanning rows", zap.Error(err))
+			h.l.Debug("Error scanning rows", zap.Error(err))
 			return nil, err
 		}
 		operations = append(operations, operation)
@@ -43,9 +62,9 @@ func (r History) GetSentByUser(name string) ([]entity.Operation, error) {
 	return operations, nil
 }
 
-func (r History) GetReceivedByUser(name string) ([]entity.Operation, error) {
-	q, err := r.db.Prepare(`
-	SELECT sender_name, amount
+func (h History) GetReceivedByUser(name string) ([]entity.Operation, error) {
+	q, err := h.db.Prepare(`
+	SELECT sender_name, receiver_name, amount
 	FROM history
 	WHERE receiver_name = $1
 `)
@@ -63,9 +82,9 @@ func (r History) GetReceivedByUser(name string) ([]entity.Operation, error) {
 	var operations []entity.Operation
 	for rows.Next() {
 		var operation entity.Operation
-		err = rows.Scan(&operation.User, &operation.Amount)
+		err = rows.Scan(&operation.FromUser, &operation.ToUser, &operation.Amount)
 		if err != nil {
-			r.l.Debug("Error scanning rows", zap.Error(err))
+			h.l.Debug("Error scanning rows", zap.Error(err))
 			return nil, err
 		}
 		operations = append(operations, operation)

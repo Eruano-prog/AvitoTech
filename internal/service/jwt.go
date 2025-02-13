@@ -20,7 +20,6 @@ func (s JWTService) GenerateToken(userID int) (string, error) {
 }
 
 // VerifyToken validates token and return userID from claims
-// TODO: separate verifying and getting claims from token
 func (s JWTService) VerifyToken(tokenString string) (int, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return s.secret, nil
