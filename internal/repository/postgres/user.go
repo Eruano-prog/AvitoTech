@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"go.uber.org/zap"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type UserRepository struct {
@@ -185,21 +183,10 @@ func (u UserRepository) WithdrawMoney(user int, amount int) error {
 
 func NewUserRepository(
 	l *zap.Logger,
-	pgAddress string,
-	pgUser string,
-	pgPassword string,
-	pgDatabase string,
-) (repository.UserRepository, error) {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", pgUser, pgPassword, pgAddress, pgDatabase)
-
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		l.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
-		return nil, err
-	}
-
+	db *sql.DB,
+) repository.UserRepository {
 	return &UserRepository{
 		l:  l,
 		db: db,
-	}, nil
+	}
 }

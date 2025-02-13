@@ -5,8 +5,10 @@ import (
 	"AvitoTech/internal/controller"
 	"AvitoTech/internal/repository/postgres"
 	"AvitoTech/internal/service"
+	"database/sql"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -28,25 +30,21 @@ func Run() {
 	pgCfg := config.Configuration.Database.Postgres
 
 	pgAddr := pgCfg.Address
-	pdDb := pgCfg.DBName
+	pgDb := pgCfg.DBName
 	pgUser := pgCfg.Username
 	pgPass := pgCfg.Password
 
-	userRepository, err := postgres.NewUserRepository(logger, pgAddr, pgUser, pgPass, pdDb)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", pgUser, pgPass, pgAddr, pgDb)
+
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		logger.Fatal("cannot create user repository", zap.Error(err))
+		logger.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
 		return
 	}
-	historyRepository, err := postgres.NewHistoryRepository(logger, pgAddr, pgUser, pgPass, pdDb)
-	if err != nil {
-		logger.Fatal("cannot create history repository", zap.Error(err))
-		return
-	}
-	inventoryRepository, err := postgres.NewInventoryRepository(logger, pgAddr, pgUser, pgPass, pdDb)
-	if err != nil {
-		logger.Fatal("cannot create inventory repository", zap.Error(err))
-		return
-	}
+
+	userRepository := postgres.NewUserRepository(logger, db)
+	historyRepository := postgres.NewHistoryRepository(logger, db)
+	inventoryRepository := postgres.NewInventoryRepository(logger, db)
 
 	jwtService := service.NewJWTService(logger, config.Configuration.JwtSecret)
 

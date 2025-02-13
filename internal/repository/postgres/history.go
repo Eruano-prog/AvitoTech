@@ -4,7 +4,6 @@ import (
 	"AvitoTech/internal/entity"
 	"AvitoTech/internal/repository"
 	"database/sql"
-	"fmt"
 	"go.uber.org/zap"
 )
 
@@ -94,21 +93,10 @@ func (h History) GetReceivedByUser(name string) ([]entity.Operation, error) {
 
 func NewHistoryRepository(
 	l *zap.Logger,
-	pgAddress string,
-	pgUser string,
-	pgPassword string,
-	pgDatabase string,
-) (repository.HistoryRepository, error) {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", pgUser, pgPassword, pgAddress, pgDatabase)
-
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		l.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
-		return nil, err
-	}
-
+	db *sql.DB,
+) repository.HistoryRepository {
 	return &History{
 		l:  l,
 		db: db,
-	}, nil
+	}
 }
