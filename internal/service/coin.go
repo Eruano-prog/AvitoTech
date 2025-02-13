@@ -34,7 +34,7 @@ func (c CoinService) SendCoin(fromUser int, toUser string, amount int) error {
 		return err
 	}
 
-	err = c.historyRepo.InsertOperation(entity.Operation{
+	_, err = c.historyRepo.InsertOperation(entity.Operation{
 		FromUser: sender.Username,
 		ToUser:   receiver.Username,
 		Amount:   amount,
@@ -59,7 +59,7 @@ func (c CoinService) BuyItem(id int, item string) error {
 		return err
 	}
 
-	err = c.inventoryRepo.InsertItem(id, item)
+	_, err = c.inventoryRepo.InsertItem(id, item)
 	if err != nil {
 		c.l.Error("failed to insert item", zap.Error(err))
 		return err

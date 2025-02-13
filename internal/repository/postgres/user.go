@@ -34,7 +34,7 @@ func (u UserRepository) InsertUser(user *entity.User) (*entity.User, error) {
 	}
 
 	var resUser entity.User
-	err = res.Scan(&resUser.Id, user.Username, &resUser.Password, &resUser.Balance)
+	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
 		u.l.Error("Failed to scan inserted user", zap.Error(err))
 		return nil, err

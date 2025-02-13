@@ -13,3 +13,9 @@ var Items = map[string]int{
 	"wallet":     50,
 	"pink-hoody": 500,
 }
+
+type Item struct {
+	Id      int
+	OwnerId int
+	Title   string
+}

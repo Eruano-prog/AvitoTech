@@ -12,23 +12,26 @@ type History struct {
 	db *sql.DB
 }
 
-func (h History) InsertOperation(operation entity.Operation) error {
+func (h History) InsertOperation(operation entity.Operation) (*entity.Operation, error) {
 	q, err := h.db.Prepare(`
 	INSERT INTO history (sender_name, receiver_name, amount)
 	VALUES ($1, $2, $3)
+	RETURNING id, sender_name, receiver_name, amount
 `)
 	if err != nil {
 		h.l.Error("Failed to prepare query", zap.Error(err))
-		return err
+		return nil, err
 	}
 	defer q.Close()
 
-	_, err = q.Exec(operation.FromUser, operation.ToUser, operation.Amount)
+	var op entity.Operation
+	err = q.QueryRow(operation.FromUser, operation.ToUser, operation.Amount).Scan(&op.Id, &op.FromUser, &op.ToUser, &op.Amount)
 	if err != nil {
 		h.l.Error("Failed to insert history", zap.Error(err))
-		return err
+		return nil, err
 	}
-	return nil
+
+	return &op, nil
 }
 
 func (h History) GetSentByUser(name string) ([]entity.Operation, error) {
@@ -89,6 +92,25 @@ func (h History) GetReceivedByUser(name string) ([]entity.Operation, error) {
 		operations = append(operations, operation)
 	}
 	return operations, nil
+}
+
+func (h History) DeleteOperation(id int) error {
+	q, err := h.db.Prepare(`
+	DELETE FROM history
+	WHERE id = $1
+`)
+	if err != nil {
+		h.l.Error("Failed to prepare query", zap.Error(err))
+		return err
+	}
+	defer q.Close()
+
+	_, err = q.Exec(id)
+	if err != nil {
+		h.l.Error("Failed to delete history", zap.Error(err))
+		return err
+	}
+	return nil
 }
 
 func NewHistoryRepository(
