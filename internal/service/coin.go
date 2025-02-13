@@ -55,7 +55,7 @@ func NewCoinService(
 	l *zap.Logger,
 	u repository.UserRepository,
 	i repository.InventoryRepository,
-) *CoinService {
+) Coin {
 	return &CoinService{
 		l:             l,
 		userRepo:      u,

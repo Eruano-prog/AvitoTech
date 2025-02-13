@@ -16,7 +16,7 @@ var (
 
 type AuthService struct {
 	l              *zap.Logger
-	jwtService     *JWTService
+	jwtService     Token
 	userRepository repository.UserRepository
 }
 
@@ -87,8 +87,8 @@ func (a AuthService) VerifyJWT(token string) (int, error) {
 func NewAuthService(
 	l *zap.Logger,
 	u repository.UserRepository,
-	j *JWTService,
-) *AuthService {
+	j Token,
+) Auth {
 	return &AuthService{
 		l:              l,
 		userRepository: u,

@@ -48,7 +48,7 @@ func NewInfoService(
 	u repository.UserRepository,
 	h repository.HistoryRepository,
 	i repository.InventoryRepository,
-) *InfoService {
+) Info {
 	return &InfoService{
 		l:             l,
 		userRepo:      u,

@@ -43,7 +43,7 @@ func (s JWTService) VerifyToken(tokenString string) (int, error) {
 	return -1, errors.New("error verifying token")
 }
 
-func NewJWTService(l *zap.Logger, s string) *JWTService {
+func NewJWTService(l *zap.Logger, s string) Token {
 	return &JWTService{
 		l:      l,
 		secret: []byte(s),

@@ -14,9 +14,9 @@ import (
 type ApiController struct {
 	l *zap.Logger
 
-	auth *service.AuthService
-	info *service.InfoService
-	coin *service.CoinService
+	auth service.Auth
+	info service.Info
+	coin service.Coin
 }
 
 func (a ApiController) Register(r chi.Router) {
@@ -193,9 +193,9 @@ func (a ApiController) writeError(w http.ResponseWriter, code int, message strin
 
 func NewApiController(
 	l *zap.Logger,
-	a *service.AuthService,
-	i *service.InfoService,
-	c *service.CoinService,
+	a service.Auth,
+	i service.Info,
+	c service.Coin,
 ) *ApiController {
 	return &ApiController{
 		l:    l,
