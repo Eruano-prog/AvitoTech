@@ -3,6 +3,7 @@ package app
 import (
 	"AvitoTech/internal/config"
 	"AvitoTech/internal/controller"
+	"AvitoTech/internal/entity"
 	"AvitoTech/internal/repository/postgres"
 	"AvitoTech/internal/service"
 	"database/sql"
@@ -24,6 +25,12 @@ func Run() {
 	err = config.LoadConfiguration()
 	if err != nil {
 		logger.Fatal("cannot load configuration", zap.Error(err))
+		return
+	}
+
+	err = entity.LoadItems("./internal/entity/items.json")
+	if err != nil {
+		logger.Fatal("cannot load items", zap.Error(err))
 		return
 	}
 

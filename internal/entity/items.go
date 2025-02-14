@@ -1,21 +1,32 @@
 package entity
 
-// TODO: add loading from json file
-var Items = map[string]int{
-	"t-shirt":    80,
-	"cup":        20,
-	"book":       50,
-	"pen":        10,
-	"powerbank":  200,
-	"hoody":      300,
-	"umbrella":   200,
-	"socks":      10,
-	"wallet":     50,
-	"pink-hoody": 500,
-}
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
+
+var Items map[string]int
 
 type Item struct {
 	Id      int
 	OwnerId int
 	Title   string
+}
+
+func LoadItems(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		fmt.Println("Ошибка при открытии файла:", err)
+		return err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&Items)
+	if err != nil {
+		fmt.Println("Ошибка при декодировании JSON:", err)
+		return err
+	}
+	return nil
 }
