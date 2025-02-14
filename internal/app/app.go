@@ -15,7 +15,23 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"time"
 )
+
+func waitForConnection(logger *zap.Logger, c *sql.DB) error {
+	var err error
+	for i := 0; i < 10; i++ {
+		err = c.Ping()
+		if err == nil {
+			logger.Info("connected to database")
+			return nil
+		}
+		logger.Warn("waiting for database...", zap.Int("attempt", i+1))
+		time.Sleep(1 * time.Second)
+	}
+	logger.Fatal("failed to ping database after multiple attempts", zap.Error(err))
+	return err
+}
 
 func Run() {
 	logger, err := zap.NewDevelopment()
@@ -55,9 +71,9 @@ func Run() {
 		logger.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
 		return
 	}
-	err = db.Ping()
+	err = waitForConnection(logger, db)
 	if err != nil {
-		logger.Fatal("failed to ping database", zap.String("dsn", dsn), zap.Error(err))
+		logger.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
 		return
 	}
 
