@@ -24,7 +24,7 @@ func (c CoinService) SendCoin(fromUser int, toUser string, amount int) error {
 
 	receiver, err := c.userRepo.FindUserByUsername(toUser)
 	if err != nil {
-		c.l.Debug("toUser bot found", zap.Error(err))
+		c.l.Debug("toUser not found", zap.Error(err))
 		return err
 	}
 

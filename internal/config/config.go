@@ -8,7 +8,7 @@ import (
 // TODO: replace me with .env
 //
 //go:embed config.yaml
-var config []byte
+var cfg []byte
 
 type databaseConfig struct {
 	Postgres struct {
@@ -23,16 +23,16 @@ type serverConfig struct {
 	RESTAddr string `yaml:"restAddr"`
 }
 
-type configuration struct {
+type Config struct {
 	JwtSecret string         `yaml:"jwtSecret"`
 	Database  databaseConfig `yaml:"database"`
 	Server    serverConfig   `yaml:"server"`
 }
 
-var Configuration = configuration{}
+var Configuration = Config{}
 
 // LoadConfiguration expected to refresh cfgs from file but now it just initializes it
 // TODO: Seems like it useless because the file is precompiled with config. Need to separate static part and mutual and rewrite it without go:embed to provide possibility to refresh config from file
 func LoadConfiguration() error {
-	return yaml.Unmarshal(config, &Configuration)
+	return yaml.Unmarshal(cfg, &Configuration)
 }

@@ -67,7 +67,7 @@ func (a AuthService) Authenticate(username, password string) (string, error) {
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		a.l.Debug("failed to compare password", zap.Error(err))
-		return "", err
+		return "", UnauthorizedError
 	}
 
 	token, err := a.jwtService.GenerateToken(user.Id)
