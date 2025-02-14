@@ -105,7 +105,6 @@ func (a ApiController) apiInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//TODO: move it to service layer
 	sent := make([]SendRecord, len(info.Sent))
 	for i, item := range info.Sent {
 		sent[i].ToUser = &item.ToUser

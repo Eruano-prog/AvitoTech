@@ -9,8 +9,11 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/ilyakaznacheev/cleanenv"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 )
 
@@ -22,7 +25,11 @@ func Run() {
 	}
 	defer logger.Sync()
 
-	err = config.LoadConfiguration()
+	if err = godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	err = cleanenv.ReadEnv(&config.Configuration)
 	if err != nil {
 		logger.Fatal("cannot load configuration", zap.Error(err))
 		return
@@ -34,7 +41,7 @@ func Run() {
 		return
 	}
 
-	pgCfg := config.Configuration.Database.Postgres
+	pgCfg := config.Configuration.Database
 
 	pgAddr := pgCfg.Address
 	pgDb := pgCfg.DBName
@@ -46,6 +53,11 @@ func Run() {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		logger.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
+		return
+	}
+	err = db.Ping()
+	if err != nil {
+		logger.Fatal("failed to ping database", zap.String("dsn", dsn), zap.Error(err))
 		return
 	}
 

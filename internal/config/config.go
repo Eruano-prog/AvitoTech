@@ -1,38 +1,20 @@
 package config
 
-import (
-	_ "embed"
-	"gopkg.in/yaml.v3"
-)
-
-// TODO: replace me with .env
-//
-//go:embed config.yaml
-var cfg []byte
+type Config struct {
+	JwtSecret string `env:"JWT_SECRET" env-required:"true"`
+	Database  databaseConfig
+	Server    serverConfig
+}
 
 type databaseConfig struct {
-	Postgres struct {
-		Address  string `yaml:"address"`
-		DBName   string `yaml:"db_name"`
-		Username string `yaml:"username"`
-		Password string `yaml:"password"`
-	} `yaml:"postgres"`
+	Address  string `env:"DATABASE_ADDRESS" env-required:"true"`
+	DBName   string `env:"DATABASE_DB_NAME" env-required:"true"`
+	Username string `env:"DATABASE_USERNAME" env-required:"true"`
+	Password string `env:"DATABASE_PASSWORD" env-required:"true"`
 }
 
 type serverConfig struct {
-	RESTAddr string `yaml:"restAddr"`
+	RESTAddr string `env:"SERVER_REST_ADDR" env-required:"true"`
 }
 
-type Config struct {
-	JwtSecret string         `yaml:"jwtSecret"`
-	Database  databaseConfig `yaml:"database"`
-	Server    serverConfig   `yaml:"server"`
-}
-
-var Configuration = Config{}
-
-// LoadConfiguration expected to refresh cfgs from file but now it just initializes it
-// TODO: Seems like it useless because the file is precompiled with config. Need to separate static part and mutual and rewrite it without go:embed to provide possibility to refresh config from file
-func LoadConfiguration() error {
-	return yaml.Unmarshal(cfg, &Configuration)
-}
+var Configuration Config

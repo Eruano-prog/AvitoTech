@@ -50,7 +50,7 @@ func (u UserRepository) FindUserByUsername(username string) (*entity.User, error
 	WHERE username = $1
 `)
 	if err != nil {
-		u.l.Error("Failed to find user by username", zap.String("username", username))
+		u.l.Error("Failed to prepare query to find user by username", zap.String("username", username))
 		return nil, err
 	}
 	defer q.Close()

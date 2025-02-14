@@ -1,8 +1,0 @@
-database:
-  postgres:
-    db_name: "JustAUser"
-    username: "JustAUser"
-    password: ""
-
-server:
-  restAddr: ":0000"

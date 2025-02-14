@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/assert"
@@ -29,12 +30,12 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	err := config.LoadConfiguration()
+	err := cleanenv.ReadEnv(&config.Configuration)
 	if err != nil {
 		fmt.Printf("Could not load configuration: %s", err)
 		return
 	}
-	pgCfg := config.Configuration.Database.Postgres
+	pgCfg := config.Configuration.Database
 
 	pool, err = dockertest.NewPool("")
 	if err != nil {
