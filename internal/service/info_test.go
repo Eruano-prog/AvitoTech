@@ -23,18 +23,18 @@ func TestInfoService_GetInfo_Success(t *testing.T) {
 	username := "testuser"
 	balance := 1000
 	sentOperations := []entity.Operation{
-		{Id: 1, FromUser: username, ToUser: "user2", Amount: 100},
+		{ID: 1, FromUser: username, ToUser: "user2", Amount: 100},
 	}
 	receivedOperations := []entity.Operation{
-		{Id: 2, FromUser: "user2", ToUser: username, Amount: 200},
+		{ID: 2, FromUser: "user2", ToUser: username, Amount: 200},
 	}
 	inventory := map[string]int{
 		"item1": 1,
 		"item2": 2,
 	}
 
-	mockUserRepo.On("FindUserById", userID).Return(&entity.User{
-		Id:       userID,
+	mockUserRepo.On("FindUserByID", userID).Return(&entity.User{
+		ID:       userID,
 		Username: username,
 		Balance:  balance,
 	}, nil)
@@ -65,7 +65,7 @@ func TestInfoService_GetInfo_UserNotFound(t *testing.T) {
 	infoService := NewInfoService(logger, mockUserRepo, mockHistoryRepo, mockInventoryRepo)
 
 	userID := 1
-	mockUserRepo.On("FindUserById", userID).Return(&entity.User{}, repository.ErrorUserNotFound)
+	mockUserRepo.On("FindUserByID", userID).Return(&entity.User{}, repository.ErrorUserNotFound)
 
 	info, err := infoService.GetInfo(userID)
 
@@ -88,8 +88,8 @@ func TestInfoService_GetInfo_HistoryError(t *testing.T) {
 	balance := 1000
 	historyError := errors.New("history error")
 
-	mockUserRepo.On("FindUserById", userID).Return(&entity.User{
-		Id:       userID,
+	mockUserRepo.On("FindUserByID", userID).Return(&entity.User{
+		ID:       userID,
 		Username: username,
 		Balance:  balance,
 	}, nil)

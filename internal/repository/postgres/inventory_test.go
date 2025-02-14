@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"AvitoTech/internal/repository"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"testing"
@@ -12,7 +13,12 @@ func TestInsertItem(t *testing.T) {
 
 	item, err := repo.InsertItem(1, "item1")
 	assert.NoError(t, err)
-	defer repo.DeleteItem(item.Id)
+	defer func(repo repository.InventoryRepository, id int) {
+		err = repo.DeleteItem(id)
+		if err != nil {
+			logger.Error("error deleting item", zap.Error(err))
+		}
+	}(repo, item.ID)
 
 	var count int
 	err = db.QueryRow("SELECT COUNT(*) FROM inventory WHERE owner_id = $1 AND item = $2", 1, "item1").Scan(&count)
@@ -26,15 +32,30 @@ func TestGetUsersInventory(t *testing.T) {
 
 	item1, err := repo.InsertItem(1, "item1")
 	assert.NoError(t, err)
-	defer repo.DeleteItem(item1.Id)
+	defer func(repo repository.InventoryRepository, id int) {
+		err = repo.DeleteItem(id)
+		if err != nil {
+			logger.Error("error deleting item", zap.Error(err))
+		}
+	}(repo, item1.ID)
 
 	item2, err := repo.InsertItem(1, "item1")
 	assert.NoError(t, err)
-	defer repo.DeleteItem(item2.Id)
+	defer func(repo repository.InventoryRepository, id int) {
+		err = repo.DeleteItem(id)
+		if err != nil {
+			logger.Error("error deleting item", zap.Error(err))
+		}
+	}(repo, item2.ID)
 
 	item3, err := repo.InsertItem(1, "item2")
 	assert.NoError(t, err)
-	defer repo.DeleteItem(item3.Id)
+	defer func(repo repository.InventoryRepository, id int) {
+		err = repo.DeleteItem(id)
+		if err != nil {
+			logger.Error("error deleting item", zap.Error(err))
+		}
+	}(repo, item3.ID)
 
 	inventory, err := repo.GetUsersInventory(1)
 	assert.NoError(t, err)
@@ -50,11 +71,11 @@ func TestDeleteItem(t *testing.T) {
 	item, err := repo.InsertItem(1, "item1")
 	assert.NoError(t, err)
 
-	err = repo.DeleteItem(item.Id)
+	err = repo.DeleteItem(item.ID)
 	assert.NoError(t, err)
 
 	var count int
-	err = db.QueryRow("SELECT COUNT(*) FROM inventory WHERE id = $1", item.Id).Scan(&count)
+	err = db.QueryRow("SELECT COUNT(*) FROM inventory WHERE id = $1", item.ID).Scan(&count)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, count)
 }

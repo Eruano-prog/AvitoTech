@@ -22,10 +22,15 @@ func (i InventoryRepository) InsertItem(owner int, itemTitle string) (*entity.It
 		i.l.Error("failed to prepare inventory query", zap.Error(err))
 		return nil, err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			i.l.Error("failed to close inventory query", zap.Error(err))
+		}
+	}(q)
 
 	var item entity.Item
-	err = q.QueryRow(owner, itemTitle).Scan(&item.Id, &item.OwnerId, &item.Title)
+	err = q.QueryRow(owner, itemTitle).Scan(&item.ID, &item.OwnerID, &item.Title)
 	if err != nil {
 		i.l.Error("failed to insert item", zap.Error(err))
 		return nil, err
@@ -45,14 +50,24 @@ func (i InventoryRepository) GetUsersInventory(userID int) (map[string]int, erro
 		i.l.Error("failed to prepare query", zap.Error(err))
 		return nil, err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			i.l.Error("failed to close inventory query", zap.Error(err))
+		}
+	}(q)
 
 	rows, err := q.Query(userID)
 	if err != nil {
 		i.l.Error("failed to query", zap.Error(err))
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err = rows.Close()
+		if err != nil {
+			i.l.Error("failed to close inventory query", zap.Error(err))
+		}
+	}(rows)
 
 	var result = make(map[string]int)
 	for rows.Next() {
@@ -79,7 +94,12 @@ func (i InventoryRepository) DeleteItem(id int) error {
 		i.l.Error("failed to prepare delete query", zap.Error(err))
 		return err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			i.l.Error("failed to close inventory query", zap.Error(err))
+		}
+	}(q)
 
 	_, err = q.Exec(id)
 	if err != nil {

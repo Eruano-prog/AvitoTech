@@ -62,7 +62,7 @@ func TestFindUserById(t *testing.T) {
 	insertedUser, err := repo.InsertUser(user)
 	assert.NoError(t, err)
 
-	foundUser, err := repo.FindUserById(insertedUser.Id)
+	foundUser, err := repo.FindUserByID(insertedUser.ID)
 	assert.NoError(t, err)
 	assert.NotNil(t, foundUser)
 	assert.Equal(t, user.Username, foundUser.Username)
@@ -92,14 +92,14 @@ func TestTransferMoney(t *testing.T) {
 	insertedUser2, err := repo.InsertUser(user2)
 	assert.NoError(t, err)
 
-	err = repo.TransferMoney(insertedUser1.Id, insertedUser2.Id, 50)
+	err = repo.TransferMoney(insertedUser1.ID, insertedUser2.ID, 50)
 	assert.NoError(t, err)
 
-	updatedUser1, err := repo.FindUserById(insertedUser1.Id)
+	updatedUser1, err := repo.FindUserByID(insertedUser1.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, 150, updatedUser1.Balance)
 
-	updatedUser2, err := repo.FindUserById(insertedUser2.Id)
+	updatedUser2, err := repo.FindUserByID(insertedUser2.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, 150, updatedUser2.Balance)
 }
@@ -117,10 +117,10 @@ func TestWithdrawMoney(t *testing.T) {
 	insertedUser, err := repo.InsertUser(user)
 	assert.NoError(t, err)
 
-	err = repo.WithdrawMoney(insertedUser.Id, 50)
+	err = repo.WithdrawMoney(insertedUser.ID, 50)
 	assert.NoError(t, err)
 
-	updatedUser, err := repo.FindUserById(insertedUser.Id)
+	updatedUser, err := repo.FindUserByID(insertedUser.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, 150, updatedUser.Balance)
 }

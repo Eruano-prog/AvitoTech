@@ -37,11 +37,11 @@ func setupTestDB(t *testing.T) func() {
 	}
 
 	hostAndPort := resource.GetHostPort("5432/tcp")
-	databaseUrl := fmt.Sprintf("postgres://testuser:testpass@%s/testdb?sslmode=disable", hostAndPort)
+	databaseURL := fmt.Sprintf("postgres://testuser:testpass@%s/testdb?sslmode=disable", hostAndPort)
 
 	if err = pool.Retry(func() error {
 		var err error
-		db, err = sql.Open("pgx", databaseUrl)
+		db, err = sql.Open("pgx", databaseURL)
 		if err != nil {
 			return err
 		}

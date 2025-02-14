@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -61,11 +62,11 @@ func TestMain(m *testing.M) {
 	}
 
 	hostAndPort := resource.GetHostPort("5432/tcp")
-	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", pgCfg.Username, pgCfg.Password, hostAndPort, pgCfg.DBName)
+	databaseURL := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", pgCfg.Username, pgCfg.Password, hostAndPort, pgCfg.DBName)
 
 	if err = pool.Retry(func() error {
 		var err error
-		db, err = sql.Open("pgx", databaseUrl)
+		db, err = sql.Open("pgx", databaseURL)
 		if err != nil {
 			return err
 		}
@@ -113,9 +114,14 @@ func TestMain(m *testing.M) {
 
 func TestApiAuth(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Could not sync logger: %s", err)
+		}
+	}(logger)
 
-	err := entity.LoadItems(itemsPath)
+	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
 	userRepository := postgres.NewUserRepository(logger, db)
@@ -128,7 +134,7 @@ func TestApiAuth(t *testing.T) {
 	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
 	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
-	apiController := controller.NewApiController(logger, authService, infoService, coinService)
+	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -147,7 +153,12 @@ func TestApiAuth(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -159,9 +170,14 @@ func TestApiAuth(t *testing.T) {
 
 func TestApiInfo(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Could not sync logger: %s", err)
+		}
+	}(logger)
 
-	err := entity.LoadItems(itemsPath)
+	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
 	userRepository := postgres.NewUserRepository(logger, db)
@@ -174,7 +190,7 @@ func TestApiInfo(t *testing.T) {
 	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
 	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
-	apiController := controller.NewApiController(logger, authService, infoService, coinService)
+	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -193,7 +209,12 @@ func TestApiInfo(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	var authResponse controller.AuthResponse
 	err = json.NewDecoder(resp.Body).Decode(&authResponse)
@@ -205,7 +226,12 @@ func TestApiInfo(t *testing.T) {
 
 	resp, err = client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -217,9 +243,14 @@ func TestApiInfo(t *testing.T) {
 
 func TestApiAuth_InvalidCredentials(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Could not sync logger: %s", err)
+		}
+	}(logger)
 
-	err := entity.LoadItems(itemsPath)
+	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
 	userRepository := postgres.NewUserRepository(logger, db)
@@ -232,7 +263,7 @@ func TestApiAuth_InvalidCredentials(t *testing.T) {
 	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
 	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
-	apiController := controller.NewApiController(logger, authService, infoService, coinService)
+	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -251,7 +282,12 @@ func TestApiAuth_InvalidCredentials(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	authRequest = controller.AuthRequest{
 		Username: "invaliduser",
@@ -264,14 +300,20 @@ func TestApiAuth_InvalidCredentials(t *testing.T) {
 	client = &http.Client{}
 	resp, err = client.Do(req)
 
+	require.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
 
 func TestApiBuyItem(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Could not sync logger: %s", err)
+		}
+	}(logger)
 
-	err := entity.LoadItems(itemsPath)
+	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
 	userRepository := postgres.NewUserRepository(logger, db)
@@ -284,7 +326,7 @@ func TestApiBuyItem(t *testing.T) {
 	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
 	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
-	apiController := controller.NewApiController(logger, authService, infoService, coinService)
+	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -303,7 +345,12 @@ func TestApiBuyItem(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	var authResponse controller.AuthResponse
 	err = json.NewDecoder(resp.Body).Decode(&authResponse)
@@ -315,16 +362,26 @@ func TestApiBuyItem(t *testing.T) {
 
 	resp, err = client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestApiSendCoin(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Could not sync logger: %s", err)
+		}
+	}(logger)
 
-	err := entity.LoadItems(itemsPath)
+	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
 	userRepository := postgres.NewUserRepository(logger, db)
@@ -337,7 +394,7 @@ func TestApiSendCoin(t *testing.T) {
 	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
 	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
-	apiController := controller.NewApiController(logger, authService, infoService, coinService)
+	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -356,7 +413,12 @@ func TestApiSendCoin(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	authRequest = controller.AuthRequest{
 		Username: "testuser",
@@ -369,7 +431,12 @@ func TestApiSendCoin(t *testing.T) {
 	client = &http.Client{}
 	resp, err = client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	var authResponse controller.AuthResponse
 	err = json.NewDecoder(resp.Body).Decode(&authResponse)
@@ -386,16 +453,26 @@ func TestApiSendCoin(t *testing.T) {
 
 	resp, err = client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestApiInfo_Unauthorized(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Could not sync logger: %s", err)
+		}
+	}(logger)
 
-	err := entity.LoadItems(itemsPath)
+	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
 	userRepository := postgres.NewUserRepository(logger, db)
@@ -408,7 +485,7 @@ func TestApiInfo_Unauthorized(t *testing.T) {
 	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
 	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
-	apiController := controller.NewApiController(logger, authService, infoService, coinService)
+	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -423,7 +500,12 @@ func TestApiInfo_Unauthorized(t *testing.T) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Warn("Failed to close response body", zap.Error(err))
+		}
+	}(resp.Body)
 
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }

@@ -1,3 +1,4 @@
+// Package controller
 package controller
 
 import (
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-type ApiController struct {
+type APIController struct {
 	l *zap.Logger
 
 	auth service.Auth
@@ -19,14 +20,14 @@ type ApiController struct {
 	coin service.Coin
 }
 
-func (a ApiController) Register(r chi.Router) {
+func (a APIController) Register(r chi.Router) {
 	r.Post("/api/auth", a.apiAuth)
 	r.Get("/api/buy/{item}", a.apiBuyItem)
 	r.Get("/api/info", a.apiInfo)
 	r.Post("/api/sendCoin", a.apiSendCoin)
 }
 
-func (a ApiController) apiAuth(w http.ResponseWriter, r *http.Request) {
+func (a APIController) apiAuth(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		a.writeError(w, http.StatusBadRequest, "Invalid request: missing username or password")
@@ -42,7 +43,7 @@ func (a ApiController) apiAuth(w http.ResponseWriter, r *http.Request) {
 
 	token, err := a.auth.Authenticate(req.Username, req.Password)
 	if err != nil {
-		if errors.Is(err, service.UnauthorizedError) {
+		if errors.Is(err, service.ErrUnauthorized) {
 			a.writeError(w, http.StatusUnauthorized, "User unauthorized")
 			return
 		}
@@ -58,10 +59,14 @@ func (a ApiController) apiAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	_, err = w.Write(jsonResp)
+	if err != nil {
+		a.l.Error("Failed to write response", zap.Error(err))
+		return
+	}
 }
 
-func (a ApiController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
+func (a APIController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")
 	if token == "" {
@@ -86,7 +91,7 @@ func (a ApiController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a ApiController) apiInfo(w http.ResponseWriter, r *http.Request) {
+func (a APIController) apiInfo(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")
 	if token == "" {
@@ -141,7 +146,7 @@ func (a ApiController) apiInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a ApiController) apiSendCoin(w http.ResponseWriter, r *http.Request) {
+func (a APIController) apiSendCoin(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("Authorization")
 	token = strings.TrimPrefix(token, "Bearer ")
 	if token == "" {
@@ -179,22 +184,26 @@ func (a ApiController) apiSendCoin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a ApiController) writeError(w http.ResponseWriter, code int, message string) {
+func (a APIController) writeError(w http.ResponseWriter, code int, message string) {
 	w.WriteHeader(code)
 	errorMessage := message
 	errResp := ErrorResponse{Errors: &errorMessage}
 	jsonResp, _ := json.Marshal(errResp)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonResp)
+	_, err := w.Write(jsonResp)
+	if err != nil {
+		a.l.Error("Failed to write response", zap.Error(err))
+		return
+	}
 }
 
-func NewApiController(
+func NewAPIController(
 	l *zap.Logger,
 	a service.Auth,
 	i service.Info,
 	c service.Coin,
-) *ApiController {
-	return &ApiController{
+) *APIController {
+	return &APIController{
 		l:    l,
 		auth: a,
 		info: i,

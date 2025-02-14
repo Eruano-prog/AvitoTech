@@ -1,3 +1,4 @@
+// Package app
 package app
 
 import (
@@ -39,7 +40,12 @@ func Run() {
 		fmt.Printf("cannot create zap logger: %v", err)
 		return
 	}
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err = logger.Sync()
+		if err != nil {
+			fmt.Printf("cannot sync zap logger: %v", err)
+		}
+	}(logger)
 
 	if err = godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
@@ -51,7 +57,7 @@ func Run() {
 		return
 	}
 
-	err = entity.LoadItems("./internal/entity/items.json")
+	err = entity.LoadItems(logger, "./internal/entity/items.json")
 	if err != nil {
 		logger.Fatal("cannot load items", zap.Error(err))
 		return
@@ -60,11 +66,11 @@ func Run() {
 	pgCfg := config.Configuration.Database
 
 	pgAddr := pgCfg.Address
-	pgDb := pgCfg.DBName
+	pgDB := pgCfg.DBName
 	pgUser := pgCfg.Username
 	pgPass := pgCfg.Password
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", pgUser, pgPass, pgAddr, pgDb)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", pgUser, pgPass, pgAddr, pgDB)
 
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
@@ -87,7 +93,7 @@ func Run() {
 	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
 	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
-	apiController := controller.NewApiController(logger, authService, infoService, coinService)
+	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
 
 	r := chi.NewRouter()
 

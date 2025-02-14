@@ -1,3 +1,4 @@
+// Package config provides config struct which are should be loaded from .env
 package config
 
 type Config struct {

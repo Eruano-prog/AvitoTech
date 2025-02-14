@@ -1,0 +1,32 @@
+run:
+  timeout: 5m
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gofmt
+    - stylecheck
+    - gosimple
+    - govet
+    - ineffassign
+    - copyloopvar
+    - staticcheck
+    - typecheck
+    - unconvert
+
+output:
+  # colored-line-number|line-number|json|tab|checkstyle, default is "colored-line-number"
+  formats:
+    - format: colored-line-number
+
+  # print lines of code with issue, default is true
+  print-issued-lines: true
+
+  # print linter name in the end of issue text, default is true
+  print-linter-name: true
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

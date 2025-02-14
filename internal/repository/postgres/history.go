@@ -1,3 +1,4 @@
+// Package postgres
 package postgres
 
 import (
@@ -22,10 +23,15 @@ func (h History) InsertOperation(operation entity.Operation) (*entity.Operation,
 		h.l.Error("Failed to prepare query", zap.Error(err))
 		return nil, err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			h.l.Error("Failed to close query", zap.Error(err))
+		}
+	}(q)
 
 	var op entity.Operation
-	err = q.QueryRow(operation.FromUser, operation.ToUser, operation.Amount).Scan(&op.Id, &op.FromUser, &op.ToUser, &op.Amount)
+	err = q.QueryRow(operation.FromUser, operation.ToUser, operation.Amount).Scan(&op.ID, &op.FromUser, &op.ToUser, &op.Amount)
 	if err != nil {
 		h.l.Error("Failed to insert history", zap.Error(err))
 		return nil, err
@@ -43,13 +49,23 @@ func (h History) GetSentByUser(name string) ([]entity.Operation, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			h.l.Error("Failed to close query", zap.Error(err))
+		}
+	}(q)
 
 	rows, err := q.Query(name)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err = rows.Close()
+		if err != nil {
+			h.l.Error("Failed to close rows query", zap.Error(err))
+		}
+	}(rows)
 
 	var operations []entity.Operation
 	for rows.Next() {
@@ -73,13 +89,23 @@ func (h History) GetReceivedByUser(name string) ([]entity.Operation, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			h.l.Error("Failed to close query", zap.Error(err))
+		}
+	}(q)
 
 	rows, err := q.Query(name)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err = rows.Close()
+		if err != nil {
+			h.l.Error("Failed to close rows query", zap.Error(err))
+		}
+	}(rows)
 
 	var operations []entity.Operation
 	for rows.Next() {
@@ -103,7 +129,12 @@ func (h History) DeleteOperation(id int) error {
 		h.l.Error("Failed to prepare query", zap.Error(err))
 		return err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			h.l.Error("Failed to close query", zap.Error(err))
+		}
+	}(q)
 
 	_, err = q.Exec(id)
 	if err != nil {

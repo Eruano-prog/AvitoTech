@@ -1,3 +1,4 @@
+// Package repository
 package repository
 
 import (
@@ -22,7 +23,7 @@ type InventoryRepository interface {
 type UserRepository interface {
 	InsertUser(user *entity.User) (*entity.User, error)
 	FindUserByUsername(username string) (*entity.User, error)
-	FindUserById(id int) (*entity.User, error)
+	FindUserByID(id int) (*entity.User, error)
 	TransferMoney(userFrom int, userTo int, amount int) error
 	WithdrawMoney(user int, amount int) error
 }

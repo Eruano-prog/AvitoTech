@@ -16,7 +16,7 @@ type CoinService struct {
 }
 
 func (c CoinService) SendCoin(fromUser int, toUser string, amount int) error {
-	sender, err := c.userRepo.FindUserById(fromUser)
+	sender, err := c.userRepo.FindUserByID(fromUser)
 	if err != nil {
 		c.l.Debug("fromUser not found", zap.Error(err))
 		return err
@@ -28,7 +28,7 @@ func (c CoinService) SendCoin(fromUser int, toUser string, amount int) error {
 		return err
 	}
 
-	err = c.userRepo.TransferMoney(fromUser, receiver.Id, amount)
+	err = c.userRepo.TransferMoney(fromUser, receiver.ID, amount)
 	if err != nil {
 		c.l.Debug("failed to transfer money", zap.Error(err))
 		return err

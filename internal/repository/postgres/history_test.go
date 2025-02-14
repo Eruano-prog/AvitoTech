@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"AvitoTech/internal/entity"
+	"AvitoTech/internal/repository"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"testing"
@@ -23,7 +24,12 @@ func TestInsertOperation(t *testing.T) {
 	assert.Equal(t, "user1", insertedOperation.FromUser)
 	assert.Equal(t, "user2", insertedOperation.ToUser)
 	assert.Equal(t, 100, insertedOperation.Amount)
-	defer repo.DeleteOperation(insertedOperation.Id)
+	defer func(repo repository.HistoryRepository, id int) {
+		err = repo.DeleteOperation(id)
+		if err != nil {
+			logger.Error("Error deleting operation", zap.Error(err))
+		}
+	}(repo, insertedOperation.ID)
 
 	var count int
 	err = db.QueryRow("SELECT COUNT(*) FROM history WHERE sender_name = $1 AND receiver_name = $2 AND amount = $3",
@@ -43,7 +49,12 @@ func TestGetSentByUser(t *testing.T) {
 	}
 	o, err := repo.InsertOperation(operation)
 	assert.NoError(t, err)
-	defer repo.DeleteOperation(o.Id)
+	defer func(repo repository.HistoryRepository, id int) {
+		err = repo.DeleteOperation(id)
+		if err != nil {
+			logger.Error("Error deleting operation", zap.Error(err))
+		}
+	}(repo, o.ID)
 
 	operations, err := repo.GetSentByUser("user1")
 	assert.NoError(t, err)
@@ -64,7 +75,12 @@ func TestGetReceivedByUser(t *testing.T) {
 	}
 	o, err := repo.InsertOperation(operation)
 	assert.NoError(t, err)
-	defer repo.DeleteOperation(o.Id)
+	defer func(repo repository.HistoryRepository, id int) {
+		err = repo.DeleteOperation(id)
+		if err != nil {
+			logger.Error("Error deleting operation", zap.Error(err))
+		}
+	}(repo, o.ID)
 
 	operations, err := repo.GetReceivedByUser("user2")
 	assert.NoError(t, err)
@@ -104,11 +120,11 @@ func TestDeleteOperation(t *testing.T) {
 	insertedOperation, err := repo.InsertOperation(operation)
 	assert.NoError(t, err)
 
-	err = repo.DeleteOperation(insertedOperation.Id)
+	err = repo.DeleteOperation(insertedOperation.ID)
 	assert.NoError(t, err)
 
 	var count int
-	err = db.QueryRow("SELECT COUNT(*) FROM history WHERE id = $1", insertedOperation.Id).Scan(&count)
+	err = db.QueryRow("SELECT COUNT(*) FROM history WHERE id = $1", insertedOperation.ID).Scan(&count)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, count)
 }

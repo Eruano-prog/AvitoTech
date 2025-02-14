@@ -8,7 +8,7 @@ type AccountInfo struct {
 }
 
 type Operation struct {
-	Id       int
+	ID       int
 	FromUser string
 	ToUser   string
 	Amount   int

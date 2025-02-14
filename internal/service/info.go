@@ -15,7 +15,7 @@ type InfoService struct {
 }
 
 func (i InfoService) GetInfo(userID int) (*entity.AccountInfo, error) {
-	user, err := i.userRepo.FindUserById(userID)
+	user, err := i.userRepo.FindUserByID(userID)
 	if err != nil {
 		i.l.Debug("user not found", zap.Error(err))
 		return nil, err
@@ -30,7 +30,7 @@ func (i InfoService) GetInfo(userID int) (*entity.AccountInfo, error) {
 		i.l.Debug("history not found", zap.Error(err))
 	}
 
-	inventory, err := i.inventoryRepo.GetUsersInventory(user.Id)
+	inventory, err := i.inventoryRepo.GetUsersInventory(user.ID)
 	if err != nil {
 		i.l.Debug("inventory not found", zap.Error(err))
 	}

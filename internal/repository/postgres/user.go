@@ -24,7 +24,12 @@ func (u UserRepository) InsertUser(user *entity.User) (*entity.User, error) {
 		u.l.Error("Failed to insert user", zap.Error(err))
 		return nil, err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			u.l.Error("Failed to close DB", zap.Error(err))
+		}
+	}(q)
 
 	res := q.QueryRow(user.Username, user.Password, user.Balance)
 
@@ -34,7 +39,7 @@ func (u UserRepository) InsertUser(user *entity.User) (*entity.User, error) {
 	}
 
 	var resUser entity.User
-	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password, &resUser.Balance)
+	err = res.Scan(&resUser.ID, &resUser.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
 		u.l.Error("Failed to scan inserted user", zap.Error(err))
 		return nil, err
@@ -53,7 +58,12 @@ func (u UserRepository) FindUserByUsername(username string) (*entity.User, error
 		u.l.Error("Failed to prepare query to find user by username", zap.String("username", username))
 		return nil, err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			u.l.Error("Failed to close DB", zap.Error(err))
+		}
+	}(q)
 
 	res := q.QueryRow(username)
 	if res.Err() != nil {
@@ -62,7 +72,7 @@ func (u UserRepository) FindUserByUsername(username string) (*entity.User, error
 	}
 
 	var resUser entity.User
-	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password, &resUser.Balance)
+	err = res.Scan(&resUser.ID, &resUser.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, repository.ErrorUserNotFound
@@ -74,7 +84,7 @@ func (u UserRepository) FindUserByUsername(username string) (*entity.User, error
 	return &resUser, nil
 }
 
-func (u UserRepository) FindUserById(id int) (*entity.User, error) {
+func (u UserRepository) FindUserByID(id int) (*entity.User, error) {
 	q, err := u.db.Prepare(`
 	SELECT user_id, username, password, balance
 	FROM users
@@ -84,7 +94,12 @@ func (u UserRepository) FindUserById(id int) (*entity.User, error) {
 		u.l.Error("Failed to find user by username", zap.Int("user id", id))
 		return nil, err
 	}
-	defer q.Close()
+	defer func(q *sql.Stmt) {
+		err = q.Close()
+		if err != nil {
+			u.l.Error("Failed to close DB", zap.Error(err))
+		}
+	}(q)
 
 	res := q.QueryRow(id)
 	if res.Err() != nil {
@@ -93,7 +108,7 @@ func (u UserRepository) FindUserById(id int) (*entity.User, error) {
 	}
 
 	var resUser entity.User
-	err = res.Scan(&resUser.Id, &resUser.Username, &resUser.Password, &resUser.Balance)
+	err = res.Scan(&resUser.ID, &resUser.Username, &resUser.Password, &resUser.Balance)
 	if err != nil {
 		u.l.Error("Failed to scan found user by username", zap.Int("user id", id))
 		return nil, err
@@ -112,26 +127,42 @@ func (u UserRepository) TransferMoney(userFrom int, userTo int, amount int) erro
 	var balance int
 	err = tx.QueryRow("SELECT balance FROM users WHERE user_id = $1 FOR UPDATE", userFrom).Scan(&balance)
 	if err != nil {
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			u.l.Error("Failed to rollback transaction", zap.Error(err))
+			return err
+		}
 		u.l.Error("Failed to check balance", zap.Error(err))
 		return err
 	}
 
 	if balance < amount {
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			u.l.Error("Failed to rollback transaction", zap.Error(err))
+			return err
+		}
 		return fmt.Errorf("insufficient balance")
 	}
 
 	_, err = tx.Exec("UPDATE users SET balance = balance - $1 WHERE user_id = $2", amount, userFrom)
 	if err != nil {
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			u.l.Error("Failed to rollback transaction", zap.Error(err))
+			return err
+		}
 		u.l.Error("Failed to update balance for sender", zap.Error(err))
 		return err
 	}
 
 	_, err = tx.Exec("UPDATE users SET balance = balance + $1 WHERE user_id = $2", amount, userTo)
 	if err != nil {
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			u.l.Error("Failed to rollback transaction", zap.Error(err))
+			return err
+		}
 		u.l.Error("Failed to update balance for receiver", zap.Error(err))
 		return err
 	}
@@ -156,7 +187,11 @@ func (u UserRepository) WithdrawMoney(user int, amount int) error {
 	err = tx.QueryRow("SELECT balance FROM users WHERE user_id = $1 FOR UPDATE", user).Scan(&balance)
 	if err != nil {
 		u.l.Error("Failed to check balance", zap.Error(err))
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			u.l.Error("Failed to rollback transaction", zap.Error(err))
+			return err
+		}
 		return err
 	}
 
@@ -167,14 +202,22 @@ func (u UserRepository) WithdrawMoney(user int, amount int) error {
 	_, err = tx.Exec("UPDATE users SET balance = balance - $1 WHERE user_id = $2", amount, user)
 	if err != nil {
 		u.l.Error("Failed to update balance", zap.Error(err))
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			u.l.Error("Failed to rollback transaction", zap.Error(err))
+			return err
+		}
 		return err
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		u.l.Error("Failed to commit transaction", zap.Error(err))
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			u.l.Error("Failed to rollback transaction", zap.Error(err))
+			return err
+		}
 		return err
 	}
 

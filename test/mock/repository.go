@@ -1,3 +1,4 @@
+// Package mock
 package mock
 
 import (
@@ -19,7 +20,7 @@ func (m *MockUserRepository) FindUserByUsername(username string) (*entity.User, 
 	return args.Get(0).(*entity.User), args.Error(1)
 }
 
-func (m *MockUserRepository) FindUserById(id int) (*entity.User, error) {
+func (m *MockUserRepository) FindUserByID(id int) (*entity.User, error) {
 	args := m.Called(id)
 	return args.Get(0).(*entity.User), args.Error(1)
 }

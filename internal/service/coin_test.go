@@ -24,24 +24,24 @@ func TestCoinService_SendCoin_Success(t *testing.T) {
 	amount := 100
 
 	sender := &entity.User{
-		Id:       fromUserID,
+		ID:       fromUserID,
 		Username: "sender",
 		Balance:  1000,
 	}
 	receiver := &entity.User{
-		Id:       2,
+		ID:       2,
 		Username: toUsername,
 		Balance:  500,
 	}
 
-	mockUserRepo.On("FindUserById", fromUserID).Return(sender, nil)
+	mockUserRepo.On("FindUserByID", fromUserID).Return(sender, nil)
 	mockUserRepo.On("FindUserByUsername", toUsername).Return(receiver, nil)
-	mockUserRepo.On("TransferMoney", fromUserID, receiver.Id, amount).Return(nil)
+	mockUserRepo.On("TransferMoney", fromUserID, receiver.ID, amount).Return(nil)
 	mockHistoryRepo.On("InsertOperation", entity.Operation{
 		FromUser: sender.Username,
 		ToUser:   receiver.Username,
 		Amount:   amount,
-	}).Return(&entity.Operation{Id: 1, FromUser: sender.Username, ToUser: receiver.Username, Amount: amount}, nil)
+	}).Return(&entity.Operation{ID: 1, FromUser: sender.Username, ToUser: receiver.Username, Amount: amount}, nil)
 
 	err := coinService.SendCoin(fromUserID, toUsername, amount)
 
@@ -61,7 +61,7 @@ func TestCoinService_SendCoin_SenderNotFound(t *testing.T) {
 
 	fromUserID := 1
 	toUsername := "receiver"
-	mockUserRepo.On("FindUserById", fromUserID).Return(&entity.User{}, repository.ErrorUserNotFound)
+	mockUserRepo.On("FindUserByID", fromUserID).Return(&entity.User{}, repository.ErrorUserNotFound)
 
 	err := coinService.SendCoin(fromUserID, toUsername, 100)
 
@@ -83,12 +83,12 @@ func TestCoinService_SendCoin_ReceiverNotFound(t *testing.T) {
 	toUsername := "receiver"
 
 	sender := &entity.User{
-		Id:       fromUserID,
+		ID:       fromUserID,
 		Username: "sender",
 		Balance:  1000,
 	}
 
-	mockUserRepo.On("FindUserById", fromUserID).Return(sender, nil)
+	mockUserRepo.On("FindUserByID", fromUserID).Return(sender, nil)
 	mockUserRepo.On("FindUserByUsername", toUsername).Return(&entity.User{}, repository.ErrorUserNotFound)
 
 	err := coinService.SendCoin(fromUserID, toUsername, 100)
@@ -112,19 +112,19 @@ func TestCoinService_SendCoin_TransferFailed(t *testing.T) {
 	amount := 100
 
 	sender := &entity.User{
-		Id:       fromUserID,
+		ID:       fromUserID,
 		Username: "sender",
 		Balance:  1000,
 	}
 	receiver := &entity.User{
-		Id:       2,
+		ID:       2,
 		Username: toUsername,
 		Balance:  500,
 	}
 
-	mockUserRepo.On("FindUserById", fromUserID).Return(sender, nil)
+	mockUserRepo.On("FindUserByID", fromUserID).Return(sender, nil)
 	mockUserRepo.On("FindUserByUsername", toUsername).Return(receiver, nil)
-	mockUserRepo.On("TransferMoney", fromUserID, receiver.Id, amount).Return(errors.New("transfer failed"))
+	mockUserRepo.On("TransferMoney", fromUserID, receiver.ID, amount).Return(errors.New("transfer failed"))
 
 	err := coinService.SendCoin(fromUserID, toUsername, amount)
 
@@ -143,7 +143,7 @@ func TestCoinService_BuyItem_Success(t *testing.T) {
 	coinService := NewCoinService(logger, mockUserRepo, mockInventoryRepo, mockHistoryRepo)
 
 	userID := 1
-	item := entity.Item{Title: "cup", OwnerId: userID}
+	item := entity.Item{Title: "cup", OwnerID: userID}
 	cost := entity.Items[item.Title]
 
 	mockUserRepo.On("WithdrawMoney", userID, cost).Return(nil)
@@ -205,7 +205,7 @@ func TestCoinService_BuyItem_InsertItemFailed(t *testing.T) {
 	coinService := NewCoinService(logger, mockUserRepo, mockInventoryRepo, mockHistoryRepo)
 
 	userID := 1
-	item := entity.Item{Title: "cup", OwnerId: userID}
+	item := entity.Item{Title: "cup", OwnerID: userID}
 	cost := entity.Items[item.Title]
 
 	mockUserRepo.On("WithdrawMoney", userID, cost).Return(nil)

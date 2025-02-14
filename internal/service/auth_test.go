@@ -26,14 +26,14 @@ func TestAuthService_Authenticate_NewUser(t *testing.T) {
 	mockUserRepo.On("FindUserByUsername", username).Return(&entity.User{}, repository.ErrorUserNotFound)
 
 	newUser := &entity.User{
-		Id:       1,
+		ID:       1,
 		Username: username,
 		Password: "hashedpassword",
 		Balance:  1000,
 	}
 	mockUserRepo.On("InsertUser", mock.AnythingOfType("*entity.User")).Return(newUser, nil)
 
-	mockToken.On("GenerateToken", newUser.Id).Return("generated-token", nil)
+	mockToken.On("GenerateToken", newUser.ID).Return("generated-token", nil)
 
 	token, err := authService.Authenticate(username, password)
 
@@ -58,14 +58,14 @@ func TestAuthService_Authenticate_ExistingUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	existingUser := &entity.User{
-		Id:       1,
+		ID:       1,
 		Username: username,
 		Password: string(hashedPassword),
 		Balance:  1000,
 	}
 	mockUserRepo.On("FindUserByUsername", username).Return(existingUser, nil)
 
-	mockToken.On("GenerateToken", existingUser.Id).Return("generated-token", nil)
+	mockToken.On("GenerateToken", existingUser.ID).Return("generated-token", nil)
 
 	token, err := authService.Authenticate(username, password)
 
@@ -87,7 +87,7 @@ func TestAuthService_Authenticate_InvalidPassword(t *testing.T) {
 	password := "wrongpassword"
 
 	existingUser := &entity.User{
-		Id:       1,
+		ID:       1,
 		Username: username,
 		Password: "hashedpassword",
 		Balance:  1000,

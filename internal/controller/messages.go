@@ -68,8 +68,8 @@ type SendCoinRequest struct {
 	ToUser string `json:"toUser"`
 }
 
-// PostApiAuthJSONRequestBody defines body for apiAuth for application/json ContentType.
-type PostApiAuthJSONRequestBody = AuthRequest
+// PostAPIAuthJSONRequestBody defines body for apiAuth for application/json ContentType.
+type PostAPIAuthJSONRequestBody = AuthRequest
 
-// PostApiSendCoinJSONRequestBody defines body for apiSendCoin for application/json ContentType.
-type PostApiSendCoinJSONRequestBody = SendCoinRequest
+// PostAPISendCoinJSONRequestBody defines body for apiSendCoin for application/json ContentType.
+type PostAPISendCoinJSONRequestBody = SendCoinRequest
