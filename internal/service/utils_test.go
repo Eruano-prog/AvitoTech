@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 		fmt.Println("Error creating logger")
 		return
 	}
-	err = entity.LoadItems(logger, "../entity/items.json")
+	err = entity.LoadItems(logger, "../config/items.json")
 	if err != nil {
 		logger.Error("Error loading items.")
 		return

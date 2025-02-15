@@ -26,7 +26,7 @@ import (
 var (
 	db        *sql.DB
 	pool      *dockertest.Pool
-	itemsPath = "../entity/items.json"
+	itemsPath = "../config/items.json"
 )
 
 func TestMain(m *testing.M) {
@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	err = os.Setenv("ITEMS_PATH", "../entity/items.json")
+	err = os.Setenv("ITEMS_PATH", itemsPath)
 	if err != nil {
 		fmt.Println("Error setting ITEMS_PATH")
 		return
