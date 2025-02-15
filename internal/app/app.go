@@ -34,7 +34,26 @@ func waitForConnection(logger *zap.Logger, c *sql.DB) error {
 	return err
 }
 
-func setupApp() (*zap.Logger, *sql.DB, *controller.APIController, error) {
+func setupApp(logger *zap.Logger, db *sql.DB) (*controller.APIController, error) {
+	userRepository := postgres.NewUserRepository(logger, db)
+	historyRepository := postgres.NewHistoryRepository(logger, db)
+	inventoryRepository := postgres.NewInventoryRepository(logger, db)
+
+	jwtService := service.NewJWTService(logger, config.Configuration.JwtSecret)
+
+	authService := service.NewAuthService(logger, userRepository, jwtService)
+	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
+	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
+
+	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
+
+	return apiController, nil
+}
+
+func Run() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 	c := zap.NewProductionConfig()
 
 	c.Level = zap.NewAtomicLevelAt(zap.WarnLevel)
@@ -42,7 +61,7 @@ func setupApp() (*zap.Logger, *sql.DB, *controller.APIController, error) {
 	logger, err := c.Build()
 	if err != nil {
 		fmt.Printf("cannot create zap logger: %v", err)
-		return nil, nil, nil, err
+		return
 	}
 	defer func(logger *zap.Logger) {
 		err = logger.Sync()
@@ -54,13 +73,13 @@ func setupApp() (*zap.Logger, *sql.DB, *controller.APIController, error) {
 	err = cleanenv.ReadEnv(&config.Configuration)
 	if err != nil {
 		logger.Fatal("cannot load configuration", zap.Error(err))
-		return nil, nil, nil, err
+		return
 	}
 
 	err = entity.LoadItems(logger, config.Configuration.ItemsPath)
 	if err != nil {
 		logger.Fatal("cannot load items", zap.Error(err))
-		return nil, nil, nil, err
+		return
 	}
 
 	pgCfg := config.Configuration.Database
@@ -75,7 +94,7 @@ func setupApp() (*zap.Logger, *sql.DB, *controller.APIController, error) {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		logger.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
-		return nil, nil, nil, err
+		return
 	}
 	db.SetMaxOpenConns(700)
 	db.SetMaxIdleConns(100)
@@ -84,27 +103,7 @@ func setupApp() (*zap.Logger, *sql.DB, *controller.APIController, error) {
 
 	err = waitForConnection(logger, db)
 
-	userRepository := postgres.NewUserRepository(logger, db)
-	historyRepository := postgres.NewHistoryRepository(logger, db)
-	inventoryRepository := postgres.NewInventoryRepository(logger, db)
-
-	jwtService := service.NewJWTService(logger, config.Configuration.JwtSecret)
-
-	authService := service.NewAuthService(logger, userRepository, jwtService)
-	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
-	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
-
-	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
-
-	return logger, db, apiController, nil
-}
-
-func Run() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
-	logger, db, apiController, err := setupApp()
+	apiController, err := setupApp(logger, db)
 	defer func(db *sql.DB) {
 		err = db.Close()
 		if err != nil {

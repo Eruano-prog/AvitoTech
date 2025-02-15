@@ -4,8 +4,6 @@ import (
 	"AvitoTech/internal/config"
 	"AvitoTech/internal/controller"
 	"AvitoTech/internal/entity"
-	"AvitoTech/internal/repository/postgres"
-	"AvitoTech/internal/service"
 	"bytes"
 	"database/sql"
 	"encoding/json"
@@ -126,9 +124,22 @@ func TestMain(m *testing.M) {
 }
 
 func TestApiAuth(t *testing.T) {
-	logger, db, apiController, err := setupApp()
+	logger, _ := zap.NewDevelopment()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			fmt.Printf("Could not sync logger: %s", err)
+		}
+	}(logger)
+
+	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
-	defer db.Close()
+
+	apiController, err := setupApp(logger, db)
+	if err != nil {
+		logger.Warn("Failed to create api controller", zap.Error(err))
+		return
+	}
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -174,17 +185,11 @@ func TestApiInfo(t *testing.T) {
 	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
-	userRepository := postgres.NewUserRepository(logger, db)
-	historyRepository := postgres.NewHistoryRepository(logger, db)
-	inventoryRepository := postgres.NewInventoryRepository(logger, db)
-
-	jwtService := service.NewJWTService(logger, "secret")
-
-	authService := service.NewAuthService(logger, userRepository, jwtService)
-	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
-	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
-
-	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
+	apiController, err := setupApp(logger, db)
+	if err != nil {
+		logger.Warn("Failed to create api controller", zap.Error(err))
+		return
+	}
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -247,17 +252,11 @@ func TestApiAuth_InvalidCredentials(t *testing.T) {
 	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
-	userRepository := postgres.NewUserRepository(logger, db)
-	historyRepository := postgres.NewHistoryRepository(logger, db)
-	inventoryRepository := postgres.NewInventoryRepository(logger, db)
-
-	jwtService := service.NewJWTService(logger, "secret")
-
-	authService := service.NewAuthService(logger, userRepository, jwtService)
-	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
-	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
-
-	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
+	apiController, err := setupApp(logger, db)
+	if err != nil {
+		logger.Warn("Failed to create api controller", zap.Error(err))
+		return
+	}
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -310,17 +309,11 @@ func TestApiBuyItem(t *testing.T) {
 	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
-	userRepository := postgres.NewUserRepository(logger, db)
-	historyRepository := postgres.NewHistoryRepository(logger, db)
-	inventoryRepository := postgres.NewInventoryRepository(logger, db)
-
-	jwtService := service.NewJWTService(logger, "secret")
-
-	authService := service.NewAuthService(logger, userRepository, jwtService)
-	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
-	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
-
-	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
+	apiController, err := setupApp(logger, db)
+	if err != nil {
+		logger.Warn("Failed to create api controller", zap.Error(err))
+		return
+	}
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -378,17 +371,11 @@ func TestApiSendCoin(t *testing.T) {
 	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
-	userRepository := postgres.NewUserRepository(logger, db)
-	historyRepository := postgres.NewHistoryRepository(logger, db)
-	inventoryRepository := postgres.NewInventoryRepository(logger, db)
-
-	jwtService := service.NewJWTService(logger, "secret")
-
-	authService := service.NewAuthService(logger, userRepository, jwtService)
-	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
-	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
-
-	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
+	apiController, err := setupApp(logger, db)
+	if err != nil {
+		logger.Warn("Failed to create api controller", zap.Error(err))
+		return
+	}
 
 	r := chi.NewRouter()
 	apiController.Register(r)
@@ -469,17 +456,11 @@ func TestApiInfo_Unauthorized(t *testing.T) {
 	err := entity.LoadItems(logger, itemsPath)
 	require.NoError(t, err)
 
-	userRepository := postgres.NewUserRepository(logger, db)
-	historyRepository := postgres.NewHistoryRepository(logger, db)
-	inventoryRepository := postgres.NewInventoryRepository(logger, db)
-
-	jwtService := service.NewJWTService(logger, "secret")
-
-	authService := service.NewAuthService(logger, userRepository, jwtService)
-	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
-	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
-
-	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
+	apiController, err := setupApp(logger, db)
+	if err != nil {
+		logger.Warn("Failed to create api controller", zap.Error(err))
+		return
+	}
 
 	r := chi.NewRouter()
 	apiController.Register(r)
