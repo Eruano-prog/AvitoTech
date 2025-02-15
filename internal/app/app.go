@@ -78,10 +78,6 @@ func Run() {
 		return
 	}
 	err = waitForConnection(logger, db)
-	if err != nil {
-		logger.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
-		return
-	}
 
 	userRepository := postgres.NewUserRepository(logger, db)
 	historyRepository := postgres.NewHistoryRepository(logger, db)
@@ -104,6 +100,7 @@ func Run() {
 		Handler: r,
 	}
 
+	logger.Info("starting server", zap.String("addr", config.Configuration.Server.RESTAddr))
 	err = server.ListenAndServe()
 	if err != nil {
 		logger.Fatal("cannot start server", zap.Error(err))

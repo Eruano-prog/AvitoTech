@@ -20,5 +20,6 @@ services:
       - .env
     environment:
       - DATABASE_ADDRESS=postgres:5432
+      - SERVER_REST_ADDR=0.0.0.0:8080
     ports:
       - "8080:8080"
