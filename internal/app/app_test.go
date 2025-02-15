@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,19 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	err := cleanenv.ReadEnv(&config.Configuration)
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		fmt.Println("Error loading .env file")
+		return
+	}
+
+	err = os.Setenv("ITEMS_PATH", "../entity/items.json")
+	if err != nil {
+		fmt.Println("Error setting ITEMS_PATH")
+		return
+	}
+
+	err = cleanenv.ReadEnv(&config.Configuration)
 	if err != nil {
 		fmt.Printf("Could not load configuration: %s", err)
 		return
@@ -113,28 +126,9 @@ func TestMain(m *testing.M) {
 }
 
 func TestApiAuth(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
-	defer func(logger *zap.Logger) {
-		err := logger.Sync()
-		if err != nil {
-			fmt.Printf("Could not sync logger: %s", err)
-		}
-	}(logger)
-
-	err := entity.LoadItems(logger, itemsPath)
+	logger, db, apiController, err := setupApp()
 	require.NoError(t, err)
-
-	userRepository := postgres.NewUserRepository(logger, db)
-	historyRepository := postgres.NewHistoryRepository(logger, db)
-	inventoryRepository := postgres.NewInventoryRepository(logger, db)
-
-	jwtService := service.NewJWTService(logger, "secret")
-
-	authService := service.NewAuthService(logger, userRepository, jwtService)
-	infoService := service.NewInfoService(logger, userRepository, historyRepository, inventoryRepository)
-	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
-
-	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
+	defer db.Close()
 
 	r := chi.NewRouter()
 	apiController.Register(r)

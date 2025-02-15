@@ -28,6 +28,7 @@ func (a APIController) Register(r chi.Router) {
 }
 
 func (a APIController) apiAuth(w http.ResponseWriter, r *http.Request) {
+	a.l.Info("apiAuth called")
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		a.writeError(w, http.StatusBadRequest, "Invalid request: missing username or password")

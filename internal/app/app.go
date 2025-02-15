@@ -34,11 +34,15 @@ func waitForConnection(logger *zap.Logger, c *sql.DB) error {
 	return err
 }
 
-func Run() {
-	logger, err := zap.NewDevelopment()
+func setupApp() (*zap.Logger, *sql.DB, *controller.APIController, error) {
+	c := zap.NewProductionConfig()
+
+	c.Level = zap.NewAtomicLevelAt(zap.WarnLevel)
+
+	logger, err := c.Build()
 	if err != nil {
 		fmt.Printf("cannot create zap logger: %v", err)
-		return
+		return nil, nil, nil, err
 	}
 	defer func(logger *zap.Logger) {
 		err = logger.Sync()
@@ -47,20 +51,16 @@ func Run() {
 		}
 	}(logger)
 
-	if err = godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
 	err = cleanenv.ReadEnv(&config.Configuration)
 	if err != nil {
 		logger.Fatal("cannot load configuration", zap.Error(err))
-		return
+		return nil, nil, nil, err
 	}
 
-	err = entity.LoadItems(logger, "./internal/entity/items.json")
+	err = entity.LoadItems(logger, config.Configuration.ItemsPath)
 	if err != nil {
 		logger.Fatal("cannot load items", zap.Error(err))
-		return
+		return nil, nil, nil, err
 	}
 
 	pgCfg := config.Configuration.Database
@@ -75,8 +75,13 @@ func Run() {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		logger.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
-		return
+		return nil, nil, nil, err
 	}
+	db.SetMaxOpenConns(700)
+	db.SetMaxIdleConns(100)
+	db.SetConnMaxLifetime(time.Hour)
+	db.SetConnMaxIdleTime(5 * time.Minute)
+
 	err = waitForConnection(logger, db)
 
 	userRepository := postgres.NewUserRepository(logger, db)
@@ -90,6 +95,26 @@ func Run() {
 	coinService := service.NewCoinService(logger, userRepository, inventoryRepository, historyRepository)
 
 	apiController := controller.NewAPIController(logger, authService, infoService, coinService)
+
+	return logger, db, apiController, nil
+}
+
+func Run() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	logger, db, apiController, err := setupApp()
+	defer func(db *sql.DB) {
+		err = db.Close()
+		if err != nil {
+			logger.Fatal("failed to close database connection", zap.Error(err))
+		}
+	}(db)
+	if err != nil {
+		logger.Fatal("failed to setup app", zap.Error(err))
+		return
+	}
 
 	r := chi.NewRouter()
 

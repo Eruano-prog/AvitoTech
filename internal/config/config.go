@@ -3,6 +3,7 @@ package config
 
 type Config struct {
 	JwtSecret string `env:"JWT_SECRET" env-required:"true"`
+	ItemsPath string `env:"ITEMS_PATH" env-required:"true"`
 	Database  databaseConfig
 	Server    serverConfig
 }
