@@ -6,13 +6,13 @@
 #### Использованные библиотеки
 - [Chi](https://pkg.go.dev/github.com/go-chi/chi/v5) для роутинга в приложении.
 - [CleanEnv](https://pkg.go.dev/github.com/ilyakaznacheev/cleanenv) с [godotenv](https://pkg.go.dev/github.com/joho/godotenv@v1.5.1#section-readme) для загрузки переменных окружения
-- [Zap](https://pkg.go.dev/go.uber.org/zap) для логгирования 
-- [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt#pkg-functions) для хэширования и валидирования пароля
+- [Zap](https://pkg.go.dev/go.uber.org/zap) для логирования 
+- [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt#pkg-functions) для хэширования и валидации пароля
 - [jwt](https://pkg.go.dev/github.com/golang-jwt/jwt/v5) для создания и проверки JWT токена
 
 Линтер описан в [файле в корне проекта](/.golangci.yaml)
 ## Запуск приложения
-`docker-compose up` при активном докере должен поднять контейнер и Postgres для него
+`docker-compose up` из корня проекта при активном докере должен поднять контейнер и Postgres для него
 
 По дефолту работает на порту 8080.
 Эндпоинты работают согласно спецификации [openapi](/schema.yaml)(та, что прилагалась к заданию)
