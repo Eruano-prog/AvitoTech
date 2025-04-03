@@ -1,18 +1,18 @@
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
-    username TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE ,
     password TEXT NOT NULL,
     balance INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS history (
+CREATE TABLE history (
     id SERIAL PRIMARY KEY,
     sender_name TEXT NOT NULL,
     receiver_name TEXT NOT NULL,
     amount INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS inventory (
+CREATE TABLE inventory (
     id SERIAL PRIMARY KEY,
     owner_id INTEGER NOT NULL,
     item TEXT NOT NULL

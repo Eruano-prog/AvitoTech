@@ -101,6 +101,16 @@ func Run() {
 	db.SetConnMaxIdleTime(5 * time.Minute)
 
 	err = waitForConnection(logger, db)
+	if err != nil {
+		logger.Fatal("failed to connect to database", zap.String("dsn", dsn), zap.Error(err))
+		return
+	}
+
+	err = postgres.Migrate(logger, db)
+	if err != nil {
+		logger.Fatal("failed to migrate database", zap.String("dsn", dsn), zap.Error(err))
+		return
+	}
 
 	apiController, err := setupApp(logger, db)
 	defer func(db *sql.DB) {
