@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 	"github.com/ory/dockertest/v3"
@@ -141,10 +140,10 @@ func TestApiAuth(t *testing.T) {
 		return
 	}
 
-	r := chi.NewRouter()
-	apiController.Register(r)
+	mux := http.NewServeMux()
+	apiController.Register(mux)
 
-	server := httptest.NewServer(r)
+	server := httptest.NewServer(mux)
 	defer server.Close()
 
 	authRequest := controller.AuthRequest{
@@ -191,10 +190,10 @@ func TestApiInfo(t *testing.T) {
 		return
 	}
 
-	r := chi.NewRouter()
-	apiController.Register(r)
+	mux := http.NewServeMux()
+	apiController.Register(mux)
 
-	server := httptest.NewServer(r)
+	server := httptest.NewServer(mux)
 	defer server.Close()
 
 	authRequest := controller.AuthRequest{
@@ -258,10 +257,10 @@ func TestApiAuth_InvalidCredentials(t *testing.T) {
 		return
 	}
 
-	r := chi.NewRouter()
-	apiController.Register(r)
+	mux := http.NewServeMux()
+	apiController.Register(mux)
 
-	server := httptest.NewServer(r)
+	server := httptest.NewServer(mux)
 	defer server.Close()
 
 	authRequest := controller.AuthRequest{
@@ -315,10 +314,10 @@ func TestApiBuyItem(t *testing.T) {
 		return
 	}
 
-	r := chi.NewRouter()
-	apiController.Register(r)
+	mux := http.NewServeMux()
+	apiController.Register(mux)
 
-	server := httptest.NewServer(r)
+	server := httptest.NewServer(mux)
 	defer server.Close()
 
 	authRequest := controller.AuthRequest{
@@ -377,10 +376,10 @@ func TestApiSendCoin(t *testing.T) {
 		return
 	}
 
-	r := chi.NewRouter()
-	apiController.Register(r)
+	mux := http.NewServeMux()
+	apiController.Register(mux)
 
-	server := httptest.NewServer(r)
+	server := httptest.NewServer(mux)
 	defer server.Close()
 
 	authRequest := controller.AuthRequest{
@@ -462,10 +461,10 @@ func TestApiInfo_Unauthorized(t *testing.T) {
 		return
 	}
 
-	r := chi.NewRouter()
-	apiController.Register(r)
+	mux := http.NewServeMux()
+	apiController.Register(mux)
 
-	server := httptest.NewServer(r)
+	server := httptest.NewServer(mux)
 	defer server.Close()
 
 	req, err := http.NewRequest("GET", server.URL+"/api/info", nil)

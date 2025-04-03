@@ -12,6 +12,12 @@ import (
 	"strings"
 )
 
+type ctxKey string
+
+var (
+	userID ctxKey = "userID"
+)
+
 type APIController struct {
 	l *zap.Logger
 
@@ -42,7 +48,7 @@ func (a APIController) authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "userID", id)
+		ctx := context.WithValue(r.Context(), userID, id)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -89,7 +95,7 @@ func (a APIController) apiAuth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a APIController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
-	id, ok := r.Context().Value("userID").(int)
+	id, ok := r.Context().Value(userID).(int)
 	if !ok {
 		a.writeError(w, http.StatusBadRequest, "Invalid user id")
 		return
@@ -109,7 +115,7 @@ func (a APIController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a APIController) apiInfo(w http.ResponseWriter, r *http.Request) {
-	id, ok := r.Context().Value("userID").(int)
+	id, ok := r.Context().Value(userID).(int)
 	if !ok {
 		a.writeError(w, http.StatusBadRequest, "Invalid user id")
 		return
@@ -158,7 +164,7 @@ func (a APIController) apiInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a APIController) apiSendCoin(w http.ResponseWriter, r *http.Request) {
-	id, ok := r.Context().Value("userID").(int)
+	id, ok := r.Context().Value(userID).(int)
 	if !ok {
 		a.writeError(w, http.StatusBadRequest, "Invalid user id")
 		return
