@@ -182,6 +182,11 @@ func (a APIController) apiSendCoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Amount <= 0 {
+		a.writeError(w, http.StatusBadRequest, "Amount is invalid")
+		return
+	}
+
 	err = a.coin.SendCoin(id, req.ToUser, req.Amount)
 	if err != nil {
 		a.writeError(w, http.StatusInternalServerError, "Internal server error")
