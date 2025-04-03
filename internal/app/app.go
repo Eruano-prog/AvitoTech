@@ -9,7 +9,6 @@ import (
 	"AvitoTech/internal/service"
 	"database/sql"
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"github.com/ilyakaznacheev/cleanenv"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
@@ -115,13 +114,13 @@ func Run() {
 		return
 	}
 
-	r := chi.NewRouter()
+	mux := http.NewServeMux()
 
-	apiController.Register(r)
+	apiController.Register(mux)
 
 	server := http.Server{
 		Addr:    config.Configuration.Server.RESTAddr,
-		Handler: r,
+		Handler: mux,
 	}
 
 	logger.Info("starting server", zap.String("addr", config.Configuration.Server.RESTAddr))

@@ -4,7 +4,6 @@
 В качестве субд использовал **PostgreSQL**
 
 #### Использованные библиотеки
-- [Chi](https://pkg.go.dev/github.com/go-chi/chi/v5) для роутинга в приложении.
 - [CleanEnv](https://pkg.go.dev/github.com/ilyakaznacheev/cleanenv) с [godotenv](https://pkg.go.dev/github.com/joho/godotenv@v1.5.1#section-readme) для загрузки переменных окружения
 - [Zap](https://pkg.go.dev/go.uber.org/zap) для логирования 
 - [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt#pkg-functions) для хэширования и валидации пароля

@@ -3,9 +3,9 @@ package controller
 
 import (
 	"AvitoTech/internal/service"
+	"context"
 	"encoding/json"
 	"errors"
-	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -20,11 +20,32 @@ type APIController struct {
 	coin service.Coin
 }
 
-func (a APIController) Register(r chi.Router) {
-	r.Post("/api/auth", a.apiAuth)
-	r.Get("/api/buy/{item}", a.apiBuyItem)
-	r.Get("/api/info", a.apiInfo)
-	r.Post("/api/sendCoin", a.apiSendCoin)
+func (a APIController) Register(mux *http.ServeMux) {
+	mux.HandleFunc("POST /api/auth", a.apiAuth)
+
+	mux.Handle("GET /api/buy/{item}", a.authMiddleware(http.HandlerFunc(a.apiBuyItem)))
+	mux.Handle("GET /api/info", a.authMiddleware(http.HandlerFunc(a.apiInfo)))
+	mux.Handle("POST /api/sendCoin", a.authMiddleware(http.HandlerFunc(a.apiSendCoin)))
+}
+
+func (a APIController) authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		token = strings.TrimPrefix(token, "Bearer ")
+		if token == "" {
+			a.writeError(w, http.StatusBadRequest, "Missing token")
+			return
+		}
+		id, err := a.auth.VerifyJWT(token)
+		if err != nil {
+			a.writeError(w, http.StatusUnauthorized, "Invalid token")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "userID", id)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func (a APIController) apiAuth(w http.ResponseWriter, r *http.Request) {
@@ -68,24 +89,19 @@ func (a APIController) apiAuth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a APIController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("Authorization")
-	token = strings.TrimPrefix(token, "Bearer ")
-	if token == "" {
-		a.writeError(w, http.StatusBadRequest, "Missing token")
-		return
-	}
-	id, err := a.auth.VerifyJWT(token)
-	if err != nil {
-		a.writeError(w, http.StatusUnauthorized, "Invalid token")
+	id, ok := r.Context().Value("userID").(int)
+	if !ok {
+		a.writeError(w, http.StatusBadRequest, "Invalid user id")
 		return
 	}
 
-	item := chi.URLParam(r, "item")
+	item := r.PathValue("item")
 	if item == "" {
 		a.writeError(w, http.StatusBadRequest, "Item can't be empty")
+		return
 	}
 
-	err = a.coin.BuyItem(id, item)
+	err := a.coin.BuyItem(id, item)
 	if err != nil {
 		a.writeError(w, http.StatusInternalServerError, "Internal server error")
 		return
@@ -93,15 +109,9 @@ func (a APIController) apiBuyItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a APIController) apiInfo(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("Authorization")
-	token = strings.TrimPrefix(token, "Bearer ")
-	if token == "" {
-		a.writeError(w, http.StatusBadRequest, "Missing token")
-		return
-	}
-	id, err := a.auth.VerifyJWT(token)
-	if err != nil {
-		a.writeError(w, http.StatusUnauthorized, "Invalid token")
+	id, ok := r.Context().Value("userID").(int)
+	if !ok {
+		a.writeError(w, http.StatusBadRequest, "Invalid user id")
 		return
 	}
 
@@ -148,15 +158,9 @@ func (a APIController) apiInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a APIController) apiSendCoin(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("Authorization")
-	token = strings.TrimPrefix(token, "Bearer ")
-	if token == "" {
-		a.writeError(w, http.StatusBadRequest, "Missing token")
-		return
-	}
-	id, err := a.auth.VerifyJWT(token)
-	if err != nil {
-		a.writeError(w, http.StatusUnauthorized, "Invalid token")
+	id, ok := r.Context().Value("userID").(int)
+	if !ok {
+		a.writeError(w, http.StatusBadRequest, "Invalid user id")
 		return
 	}
 
